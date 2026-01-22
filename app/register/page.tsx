@@ -1,7 +1,6 @@
 "use client";
 
 import type React from "react";
-
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -19,29 +18,91 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { signIn } from "next-auth/react";
+
+import ROUTES from "@/constants/routes";
+import { useAuthStore } from "@/store/AuthStore";
 
 export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
+  const { register, setError } = useAuthStore();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (password !== confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Las contraseñas no coinciden",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!acceptTerms) {
+      toast({
+        title: "Error",
+        description: "Debes aceptar los términos y condiciones",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
-    // Simulate registration
-    setTimeout(() => {
-      setIsLoading(false);
+    // Usar la función register del store
+    const result = await register({
+      name: `${firstName} ${lastName}`,
+      email,
+      password,
+    });
+
+    if (!result.success) {
       toast({
-        title: "Account created",
-        description: "Your account has been created successfully.",
+        title: "Error",
+        description: result.error || "Error al crear la cuenta",
+        variant: "destructive",
       });
-      router.push("/dashboard");
-    }, 1500);
+      setIsLoading(false);
+      return;
+    }
+
+    toast({
+      title: "Cuenta creada",
+      description: "Revisa tu correo para verificar tu cuenta.",
+    });
+
+    // Redirigir a página de verificación de correo
+    router.push(ROUTES.PUBLIC.EMAIL_CONFIRMATION);
+    setIsLoading(false);
+  };
+
+  const handleLoginGoogle = async () => {
+    try {
+      await signIn("google", { callbackUrl: ROUTES.PROTECTED.DASHBOARD });
+    } catch (error) {
+      console.error("Error al iniciar sesión con Google:", error);
+    }
+  };
+
+  const handleLoginGithub = async () => {
+    try {
+      await signIn("github", { callbackUrl: ROUTES.PROTECTED.DASHBOARD });
+    } catch (error) {
+      console.error("Error al iniciar sesión con GitHub:", error);
+    }
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-muted p-4">
       <Link
         href="/"
         className="absolute left-8 top-8 flex items-center gap-2 font-bold md:left-12 md:top-12"
@@ -52,23 +113,33 @@ export default function RegisterPage() {
 
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">
-            Create an account
-          </CardTitle>
+          <CardTitle className="text-2xl font-bold">Crear una cuenta</CardTitle>
           <CardDescription>
-            Enter your information to create an account
+            Ingresa tu información para crear una cuenta
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="first-name">First name</Label>
-                <Input id="first-name" placeholder="John" required />
+                <Label htmlFor="first-name">Nombre</Label>
+                <Input
+                  id="first-name"
+                  placeholder="Juan"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  required
+                />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="last-name">Last name</Label>
-                <Input id="last-name" placeholder="Doe" required />
+                <Label htmlFor="last-name">Apellido</Label>
+                <Input
+                  id="last-name"
+                  placeholder="Pérez"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  required
+                />
               </div>
             </div>
             <div className="space-y-2">
@@ -76,34 +147,52 @@ export default function RegisterPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="name@example.com"
+                placeholder="nombre@ejemplo.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" required />
+              <Label htmlFor="password">Contraseña</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirm-password">Confirm password</Label>
-              <Input id="confirm-password" type="password" required />
+              <Label htmlFor="confirm-password">Confirmar contraseña</Label>
+              <Input
+                id="confirm-password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+              />
             </div>
             <div className="flex items-center space-x-2">
-              <Checkbox id="terms" required />
+              <Checkbox
+                id="terms"
+                checked={acceptTerms}
+                onCheckedChange={(checked) => setAcceptTerms(checked === true)}
+              />
               <Label htmlFor="terms" className="text-sm font-normal">
-                I agree to the{" "}
+                Acepto los{" "}
                 <Link
                   href="/terms"
                   className="text-primary underline-offset-4 hover:underline"
                 >
-                  Terms of Service
+                  Términos de Servicio
                 </Link>{" "}
-                and{" "}
+                y la{" "}
                 <Link
                   href="/privacy"
                   className="text-primary underline-offset-4 hover:underline"
                 >
-                  Privacy Policy
+                  Política de Privacidad
                 </Link>
               </Label>
             </div>
@@ -111,10 +200,10 @@ export default function RegisterPage() {
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating account...
+                  Creando cuenta...
                 </>
               ) : (
-                "Create account"
+                "Crear cuenta"
               )}
             </Button>
             <div className="relative">
@@ -123,16 +212,24 @@ export default function RegisterPage() {
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-card px-2 text-muted-foreground">
-                  Or continue with
+                  O continúa con
                 </span>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <Button variant="outline" type="button">
+              <Button
+                variant="outline"
+                type="button"
+                onClick={handleLoginGithub}
+              >
                 <Github className="mr-2 h-4 w-4" />
                 GitHub
               </Button>
-              <Button variant="outline" type="button">
+              <Button
+                variant="outline"
+                type="button"
+                onClick={handleLoginGoogle}
+              >
                 <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                   <path
                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -159,12 +256,12 @@ export default function RegisterPage() {
         </form>
         <CardFooter className="flex justify-center">
           <div className="text-sm text-muted-foreground">
-            Already have an account?{" "}
+            ¿Ya tienes una cuenta?{" "}
             <Link
               href="/login"
               className="text-primary underline-offset-4 hover:underline"
             >
-              Log in
+              Inicia sesión
             </Link>
           </div>
         </CardFooter>

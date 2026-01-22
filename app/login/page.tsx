@@ -1,7 +1,6 @@
 "use client";
 
 import type React from "react";
-
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -20,50 +19,90 @@ import {
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { signIn } from "next-auth/react";
+import ROUTES from "@/constants/routes";
+import { useAuthStore } from "@/store/AuthStore";
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const router = useRouter();
   const { toast } = useToast();
+  const { login, setError } = useAuthStore();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate login
-    setTimeout(() => {
-      setIsLoading(false);
-      toast({
-        title: "Success",
-        description: "You have been logged in successfully.",
-      });
-      router.push("/dashboard");
-    }, 1500);
-  };
-  const handleLoginGoogle = async () => {
     try {
-      // Inicia sesión con Google
-      await signIn("google");
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError(result.error);
+        toast({
+          title: "Error",
+          description: result.error || "Credenciales inválidas",
+          variant: "destructive",
+        });
+      } else {
+        login({
+          id: "",
+          name: "",
+          email,
+        });
+        toast({
+          title: "Bienvenido",
+          description: "Has iniciado sesión correctamente.",
+        });
+        router.push(ROUTES.PROTECTED.DASHBOARD);
+      }
     } catch (error) {
       console.error("Error al iniciar sesión:", error);
+      toast({
+        title: "Error",
+        description: "Ocurrió un error al iniciar sesión",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLoginGoogle = async () => {
+    try {
+      await signIn("google", { callbackUrl: ROUTES.PROTECTED.DASHBOARD });
+    } catch (error) {
+      console.error("Error al iniciar sesión con Google:", error);
+    }
+  };
+
+  const handleLoginGithub = async () => {
+    try {
+      await signIn("github", { callbackUrl: ROUTES.PROTECTED.DASHBOARD });
+    } catch (error) {
+      console.error("Error al iniciar sesión con GitHub:", error);
     }
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-muted p-4">
       <Link
         href="/"
         className="absolute left-8 top-8 flex items-center gap-2 font-bold md:left-12 md:top-12"
       >
         <Bot className="h-6 w-6" />
-        <span>ChatBot Builder</span>
+        <span>Synthex Labs</span>
       </Link>
 
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Log in</CardTitle>
+          <CardTitle className="text-2xl font-bold">Iniciar sesión</CardTitle>
           <CardDescription>
-            Enter your email and password to access your account
+            Ingresa tu email y contraseña para acceder a tu cuenta
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
@@ -73,36 +112,44 @@ export default function LoginPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="name@example.com"
+                placeholder="nombre@ejemplo.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Contraseña</Label>
                 <Link
                   href="/forgot-password"
                   className="text-sm text-primary underline-offset-4 hover:underline"
                 >
-                  Forgot password?
+                  ¿Olvidaste tu contraseña?
                 </Link>
               </div>
-              <Input id="password" type="password" required />
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
             </div>
             <div className="flex items-center space-x-2">
               <Checkbox id="remember" />
               <Label htmlFor="remember" className="text-sm font-normal">
-                Remember me
+                Recordarme
               </Label>
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Logging in...
+                  Iniciando sesión...
                 </>
               ) : (
-                "Log in"
+                "Iniciar sesión"
               )}
             </Button>
             <div className="relative">
@@ -111,12 +158,16 @@ export default function LoginPage() {
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-card px-2 text-muted-foreground">
-                  Or continue with
+                  O continúa con
                 </span>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <Button variant="outline" type="button">
+              <Button
+                variant="outline"
+                type="button"
+                onClick={handleLoginGithub}
+              >
                 <Github className="mr-2 h-4 w-4" />
                 GitHub
               </Button>
@@ -151,12 +202,12 @@ export default function LoginPage() {
         </form>
         <CardFooter className="flex justify-center">
           <div className="text-sm text-muted-foreground">
-            Don&apos;t have an account?{" "}
+            ¿No tienes una cuenta?{" "}
             <Link
               href="/register"
               className="text-primary underline-offset-4 hover:underline"
             >
-              Sign up
+              Regístrate
             </Link>
           </div>
         </CardFooter>

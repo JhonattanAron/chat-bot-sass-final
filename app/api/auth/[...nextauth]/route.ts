@@ -34,17 +34,14 @@ const handler = NextAuth({
 
       async authorize(credentials) {
         try {
-          const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                email: credentials?.email,
-                password: credentials?.password,
-              }),
-            }
-          );
+          const res = await fetch(`${process.env.NEST_API_URL}/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: credentials?.email,
+              password: credentials?.password,
+            }),
+          });
 
           console.log("Estado de la respuesta:", res.status);
 
@@ -87,7 +84,7 @@ const handler = NextAuth({
           console.error("Error en authorize:", error);
           if (error instanceof Error) {
             throw new Error(
-              error.message || "Error al conectar con el servidor"
+              error.message || "Error al conectar con el servidor",
             );
           } else {
             throw new Error("Error desconocido al conectar con el servidor");
@@ -112,7 +109,7 @@ const handler = NextAuth({
                 image: user.image,
                 googleId: user.id,
               }),
-            }
+            },
           );
 
           const data = await response.json();
@@ -151,7 +148,7 @@ const handler = NextAuth({
           const decoded = jwt.decode(user.token) as jwt.JwtPayload;
           console.log(
             "Token decodificado desde el backend (Credentials):",
-            decoded
+            decoded,
           );
 
           if (decoded) {
@@ -185,7 +182,7 @@ const handler = NextAuth({
                 image: user.image,
                 googleId: user.id,
               }),
-            }
+            },
           );
 
           const data = await response.json();
