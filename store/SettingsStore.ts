@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
-const NEST_API_URL = "http://localhost:8081";
+const NEST_API_URL = "https://api.aurentric.com";
 
 interface Profile {
   firstName: string;
@@ -60,17 +60,17 @@ interface SettingsState {
   fetchProfile: (userId?: string) => Promise<void>;
   updateProfile: (
     profileData: Partial<Profile>,
-    userId?: string
+    userId?: string,
   ) => Promise<void>;
   updatePassword: (
     currentPassword: string,
     newPassword: string,
-    userId?: string
+    userId?: string,
   ) => Promise<void>;
   fetchNotifications: (userId?: string) => Promise<void>;
   updateNotifications: (
     preferences: NotificationPreferences,
-    userId?: string
+    userId?: string,
   ) => Promise<void>;
   fetchBilling: (userId?: string) => Promise<void>;
   deleteAccount: (userId?: string) => Promise<void>;
@@ -132,7 +132,7 @@ export const useSettingsStore = create<SettingsState>()(
                 "Content-Type": "application/json",
               },
               credentials: "include",
-            }
+            },
           );
 
           const data = await response.json();
@@ -201,7 +201,7 @@ export const useSettingsStore = create<SettingsState>()(
       updatePassword: async (
         currentPassword: string,
         newPassword: string,
-        userId?: string
+        userId?: string,
       ) => {
         const targetUserId = userId || get().currentUserId;
         if (!targetUserId) {
@@ -259,7 +259,7 @@ export const useSettingsStore = create<SettingsState>()(
                 "Content-Type": "application/json",
               },
               credentials: "include",
-            }
+            },
           );
 
           const data = await response.json();
@@ -283,7 +283,7 @@ export const useSettingsStore = create<SettingsState>()(
 
       updateNotifications: async (
         preferences: NotificationPreferences,
-        userId?: string
+        userId?: string,
       ) => {
         const targetUserId = userId || get().currentUserId;
         if (!targetUserId) {
@@ -306,7 +306,7 @@ export const useSettingsStore = create<SettingsState>()(
                 user_id: targetUserId,
                 preferences,
               }),
-            }
+            },
           );
 
           const data = await response.json();
@@ -346,7 +346,7 @@ export const useSettingsStore = create<SettingsState>()(
                 "Content-Type": "application/json",
               },
               credentials: "include",
-            }
+            },
           );
 
           const data = await response.json();
@@ -386,7 +386,7 @@ export const useSettingsStore = create<SettingsState>()(
                 "Content-Type": "application/json",
               },
               credentials: "include",
-            }
+            },
           );
 
           const data = await response.json();
@@ -439,8 +439,8 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: "settings-store",
-    }
-  )
+    },
+  ),
 );
 
 // Selector hooks for better performance

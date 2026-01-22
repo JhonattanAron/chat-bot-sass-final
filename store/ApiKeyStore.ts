@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-const NEST_API_URL = "http://localhost:8081";
+const NEST_API_URL = "https://api.aurentric.com";
 
 interface ApiKey {
   id: string;
@@ -62,7 +62,7 @@ export const useApiKeyStore = create<ApiKeyState>((set, get) => ({
             "Content-Type": "application/json",
           },
           credentials: "include",
-        }
+        },
       );
 
       if (!response.ok) {
@@ -137,7 +137,7 @@ export const useApiKeyStore = create<ApiKeyState>((set, get) => ({
             name: name.trim(),
             user_id: targetUserId,
           }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -182,7 +182,7 @@ export const useApiKeyStore = create<ApiKeyState>((set, get) => ({
             "Content-Type": "application/json",
           },
           credentials: "include",
-        }
+        },
       );
 
       if (!response.ok) {
@@ -195,7 +195,7 @@ export const useApiKeyStore = create<ApiKeyState>((set, get) => ({
         // Remove the deleted key from the state
         set((state) => ({
           apiKeys: state.apiKeys.filter(
-            (key) => key.id !== keyId && key._id !== keyId
+            (key) => key.id !== keyId && key._id !== keyId,
           ),
           isDeleting: null,
           error: null,

@@ -21,7 +21,7 @@ interface AutomatedTasksState {
   updateTask: (
     id: string,
     user_id: string,
-    data: Partial<AutomatedTask>
+    data: Partial<AutomatedTask>,
   ) => Promise<any>;
   deleteTask: (id: string, user_id: string) => Promise<any>;
   toggleTaskStatus: (id: string, user_id: string) => Promise<any>;
@@ -30,7 +30,7 @@ interface AutomatedTasksState {
   testEmailConnection: (emailConfig: any) => Promise<any>;
   handleWebhook: (taskId: string, payload: any) => Promise<any>;
 }
-const NEST_API_URL = process.env.NEST_API_URL || "http://localhost:8081";
+const NEST_API_URL = "https://api.aurentric.com";
 
 export const useAutomatedTasksStore = create<AutomatedTasksState>((set) => ({
   tasks: [],
@@ -85,7 +85,7 @@ export const useAutomatedTasksStore = create<AutomatedTasksState>((set) => ({
     set({ loading: true, error: null });
     try {
       const res = await fetch(
-        `${NEST_API_URL}/automated-tasks/${id}?user_id=${user_id}`
+        `${NEST_API_URL}/automated-tasks/${id}?user_id=${user_id}`,
       );
       const json = await res.json();
       if (json.success) {
@@ -109,13 +109,13 @@ export const useAutomatedTasksStore = create<AutomatedTasksState>((set) => ({
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data),
-        }
+        },
       );
       const json = await res.json();
       if (json.success) {
         set((state) => ({
           tasks: state.tasks.map((t) =>
-            t.id === id ? { ...t, ...json.task } : t
+            t.id === id ? { ...t, ...json.task } : t,
           ),
         }));
       }
@@ -135,7 +135,7 @@ export const useAutomatedTasksStore = create<AutomatedTasksState>((set) => ({
         `${NEST_API_URL}/automated-tasks/${id}?user_id=${user_id}`,
         {
           method: "DELETE",
-        }
+        },
       );
       const json = await res.json();
       if (json.success) {
@@ -158,13 +158,13 @@ export const useAutomatedTasksStore = create<AutomatedTasksState>((set) => ({
         `${NEST_API_URL}/automated-tasks/${id}/toggle-status?user_id=${user_id}`,
         {
           method: "POST",
-        }
+        },
       );
       const json = await res.json();
       if (json.success) {
         set((state) => ({
           tasks: state.tasks.map((t) =>
-            t.id === id ? { ...t, status: json.task.status } : t
+            t.id === id ? { ...t, status: json.task.status } : t,
           ),
         }));
       }
@@ -182,7 +182,7 @@ export const useAutomatedTasksStore = create<AutomatedTasksState>((set) => ({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(context || {}),
-        }
+        },
       );
       return await res.json();
     } catch (err: any) {
@@ -193,7 +193,7 @@ export const useAutomatedTasksStore = create<AutomatedTasksState>((set) => ({
   getTaskLogs: async (id, user_id, limit = 50) => {
     try {
       const res = await fetch(
-        `${NEST_API_URL}/automated-tasks/${id}/logs?user_id=${user_id}&limit=${limit}`
+        `${NEST_API_URL}/automated-tasks/${id}/logs?user_id=${user_id}&limit=${limit}`,
       );
       const json = await res.json();
       if (json.success) {
@@ -226,7 +226,7 @@ export const useAutomatedTasksStore = create<AutomatedTasksState>((set) => ({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
-        }
+        },
       );
       return await res.json();
     } catch (err: any) {

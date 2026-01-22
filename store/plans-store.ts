@@ -34,7 +34,7 @@ interface PlansState {
   checkLimits: (userId: string) => Promise<any>;
 }
 
-const API_BASE_URL = "http://localhost:8081";
+const API_BASE_URL = "https://api.aurentric.com";
 
 export const usePlansStore = create<PlansState>((set, get) => ({
   userPlan: null,
