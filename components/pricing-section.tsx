@@ -21,7 +21,7 @@ const PricingSection = () => {
       conversationsDay: 8,
       tokenPrice: 0.0000005,
       features: [
-        "1 chatbot activo",
+        "2 chatbots activos (Client + Support)",
         "Integración web básica",
         "Respuestas automáticas",
         "Personalización básica",
@@ -41,7 +41,7 @@ const PricingSection = () => {
       conversationsDay: 19,
       tokenPrice: 0.00000039,
       features: [
-        "2 chatbots activos",
+        "4 chatbots activos (2 Client + 2 Support)",
         "Integración web completa",
         "Integración WhatsApp Business",
         "Personalización avanzada",
@@ -62,7 +62,7 @@ const PricingSection = () => {
       conversationsDay: 50,
       tokenPrice: 0.00000037,
       features: [
-        "5 chatbots activos",
+        "6 chatbots activos (3 Client + 3 Support)",
         "Integraciones personalizadas",
         "API básica",
         "Personalización completa",
@@ -76,15 +76,15 @@ const PricingSection = () => {
     {
       name: "Pro",
       description: "Para grandes empresas con necesidades específicas",
-      monthlyPrice: 45,
-      annualPrice: 45 * 12 * 0.9, // 10% descuento anual
+      monthlyPrice: 595,
+      annualPrice: 595 * 12 * 0.9, // 10% descuento anual
       tokens: 140000000,
       tokensPerConversation: 40000,
       conversationsMonth: 3480,
       conversationsDay: 116,
       tokenPrice: 0.00000032,
       features: [
-        "Chatbots ilimitados",
+        "8 chatbots activos (4 Client + 4 Support)",
         "Integraciones avanzadas",
         "API completa",
         "Personalización total",
@@ -265,7 +265,7 @@ const PricingSection = () => {
           <Button
             variant="outline"
             size="lg"
-            className="border-black dark:border-white"
+            className="border-black dark:border-white bg-transparent"
           >
             Contacta con nuestro equipo
           </Button>
