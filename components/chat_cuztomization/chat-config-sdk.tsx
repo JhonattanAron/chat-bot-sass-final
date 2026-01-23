@@ -57,6 +57,7 @@ type WebChatConfig = {
   id: string;
   clientKey: string;
   domain?: string;
+  origin?: string;
   assistantId?: string;
   apiKeyId?: string;
   status: ClientKeyStatus;
@@ -251,21 +252,21 @@ function ConfigDetailSheet({
             </div>
           </div>
 
-          {/* Domain */}
+          {/* Origin */}
           <div className="space-y-2">
             <Label className="flex items-center gap-2 text-muted-foreground">
               <Globe className="h-4 w-4" />
-              Dominio
+              Origin
             </Label>
             <Input
-              value={config.domain || "Sin dominio registrado"}
+              value={config.origin || config.domain || "Sin origin registrado"}
               readOnly
               className="bg-muted"
             />
-            {!config.domain && (
+            {!config.origin && !config.domain && (
               <p className="text-xs text-muted-foreground">
-                El dominio se detectará automáticamente cuando la clave se use
-                en el frontend.
+                El origin se detectará automáticamente cuando la clave se use en
+                el frontend.
               </p>
             )}
           </div>
@@ -521,7 +522,7 @@ export function ChatbotWebConfigPanel({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Dominio</TableHead>
+                <TableHead>Origin</TableHead>
                 <TableHead>Client Key</TableHead>
                 <TableHead>Assistant ID</TableHead>
                 <TableHead>Estado</TableHead>
@@ -542,9 +543,9 @@ export function ChatbotWebConfigPanel({
                 configs.map((config) => (
                   <TableRow key={config.id}>
                     <TableCell className="font-medium">
-                      {config.domain || (
+                      {config.origin || config.domain || (
                         <span className="text-muted-foreground italic">
-                          Sin dominio
+                          Sin origin
                         </span>
                       )}
                     </TableCell>
