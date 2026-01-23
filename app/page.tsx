@@ -11,6 +11,7 @@ import FaqSection from "@/components/faq-section";
 import Footer from "@/components/footer";
 import { ChatWidget } from "@/components/chat-widget";
 import { Toaster } from "@/components/ui/toaster";
+import { env } from "@/env";
 
 export default function Home() {
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -35,7 +36,7 @@ export default function Home() {
       <FaqSection />
       <Footer />
       <ChatWidget
-        clientKey="wck_471c37a7d9531ffbe35a343f171b2465"
+        clientKey={env.NEXT_PUBLIC_CHAT_WIDGET_CLIENT_KEY}
         apiBaseUrl="/api/backend"
         chatTitle="Asistente Demo"
         chatSubtitle="Siempre disponible"

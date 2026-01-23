@@ -18,6 +18,7 @@ export const env = createEnv({
   client: {
     NEXT_PUBLIC_API_URL: z.string().url(),
     NEXT_PUBLIC_PAYPAL_CLIENT_ID: z.string(),
+    NEXT_PUBLIC_CHAT_WIDGET_CLIENT_KEY: z.string(),
   },
 
   runtimeEnv: {
@@ -35,5 +36,7 @@ export const env = createEnv({
     // client
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
     NEXT_PUBLIC_PAYPAL_CLIENT_ID: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID,
+    NEXT_PUBLIC_CHAT_WIDGET_CLIENT_KEY:
+      process.env.NEXT_PUBLIC_CHAT_WIDGET_CLIENT_KEY,
   },
 });
