@@ -35,14 +35,18 @@ export default function Home() {
       <FaqSection />
       <Footer />
       <ChatWidget
-        clientKey="demo-client-key-12345"
-        validationApiUrl="/api/validate-sdk"
-        chatApiUrl="/api/chat/message"
-        chatStartApiUrl="/api/chat/start"
-        chatTitle="ChatBot SaaS"
-        chatSubtitle="Asistente virtual"
-        initialBotMessage="¡Hola! Soy el asistente virtual de ChatBot SaaS. ¿En qué puedo ayudarte hoy?"
+        clientKey="wck_471c37a7d9531ffbe35a343f171b2465"
+        apiBaseUrl="/api/backend"
+        chatTitle="Asistente Demo"
+        chatSubtitle="Siempre disponible"
+        initialBotMessage="Hola! Soy el asistente de demo. En que puedo ayudarte?"
         widgetPosition="bottom-right"
+        onStatusChange={(status) => {
+          console.log("[Demo] Widget status changed:", status);
+        }}
+        onError={(error) => {
+          console.error("[Demo] Widget error:", error);
+        }}
       />
     </main>
   );

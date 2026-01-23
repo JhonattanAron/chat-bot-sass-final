@@ -723,7 +723,7 @@ export default function EditBotPage({
         <Tabs defaultValue="basic" className="space-y-4">
           {/* Mobile-optimized TabsList */}
           <div className="w-full overflow-hidden">
-            <TabsList className="w-full h-auto p-1 grid grid-cols-3 md:grid-cols-6 gap-0.5 bg-muted rounded-lg">
+            <TabsList className="w-full h-auto p-1 grid grid-cols-3 md:grid-cols-7 gap-0.5 bg-muted rounded-lg">
               <TabsTrigger
                 value="basic"
                 className="text-xs sm:text-sm px-1 sm:px-3 py-2 rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all"

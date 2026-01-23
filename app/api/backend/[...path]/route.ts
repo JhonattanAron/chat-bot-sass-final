@@ -13,6 +13,10 @@ export async function PUT(req: NextRequest, { params }: any) {
   return proxy(req, params.path);
 }
 
+export async function PATCH(req: NextRequest, { params }: any) {
+  return proxy(req, params.path);
+}
+
 export async function DELETE(req: NextRequest, { params }: any) {
   return proxy(req, params.path);
 }
@@ -27,7 +31,10 @@ async function proxy(req: NextRequest, path: string[]) {
       cookie: req.headers.get("cookie") ?? "",
       authorization: req.headers.get("authorization") ?? "",
     },
-    body: req.method !== "GET" ? await req.text() : undefined,
+    body:
+      req.method === "GET" || req.method === "HEAD"
+        ? undefined
+        : await req.text(),
   });
 
   const data = await res.text();

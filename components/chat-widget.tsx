@@ -12,7 +12,16 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageSquare, X, Send, Minimize2, Maximize2 } from "lucide-react";
+import {
+  MessageSquare,
+  X,
+  Send,
+  Minimize2,
+  Maximize2,
+  Clock,
+  AlertCircle,
+  RefreshCw,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -34,8 +43,29 @@ type Message = {
  * - authorized: Successfully validated, sessionToken obtained
  * - blocked: Access denied (domain mismatch, expired key, etc.)
  * - error: Network or unexpected error occurred
+ * - pending_approval: Client key exists but waiting for admin approval
  */
-type WidgetStatus = "idle" | "validating" | "authorized" | "blocked" | "error";
+type WidgetStatus =
+  | "idle"
+  | "validating"
+  | "approved"
+  | "blocked"
+  | "error"
+  | "pending_approval";
+
+/**
+ * Backend validation response structure
+ * The backend returns valid, assistantId, apiKeyId for approved configs
+ * Also handles status for pending/blocked configs
+ */
+interface ValidationResponse {
+  valid: boolean;
+  assistantId?: string;
+  apiKeyId?: string;
+  userId?: string;
+  error?: string;
+  status?: "pending" | "waiting_approval" | "approved" | "blocked";
+}
 
 /**
  * Browser context collected automatically for security validation
@@ -44,6 +74,7 @@ type WidgetStatus = "idle" | "validating" | "authorized" | "blocked" | "error";
 interface BrowserContext {
   origin: string;
   hostname: string;
+  pathname: string;
   userAgent: string;
   language: string;
   timezone: string;
@@ -56,25 +87,10 @@ interface BrowserContext {
  * Now includes assistantId and userId from backend (not props)
  */
 interface SessionData {
-  sessionToken: string;
-  expiresAt: number;
-  status: "active" | "blocked" | "domain_mismatch" | "expired";
   assistantId: string;
-  userId: string;
-}
-
-/**
- * Backend validation response structure
- * The backend returns assistantId and user_id along with session token
- */
-interface ValidationResponse {
-  success: boolean;
-  sessionToken?: string;
-  expiresAt?: number;
-  status?: "active" | "blocked" | "domain_mismatch" | "expired";
-  assistantId?: string;
-  user_id?: string;
-  message?: string;
+  apiKeyId: string;
+  userId?: string;
+  clientKey: string;
 }
 
 // Default theme colors
@@ -92,28 +108,35 @@ const DEFAULT_THEME_COLORS = {
 };
 
 interface ChatWidgetProps {
-  clientKey: string; // Clave única del cliente para validación (solo se usa en handshake inicial)
-  validationApiUrl: string; // URL del endpoint de validación del backend (e.g., /api/validate-sdk)
-  chatApiUrl: string; // URL del endpoint de chat real para enviar mensajes (e.g., /api/chat/message)
-  chatStartApiUrl: string; // URL del endpoint para iniciar un chat (e.g., /api/chat/start)
-  // REMOVED: assistantId and userId - these now come from backend handshake response
-  // The backend returns these values securely after validating the clientKey
-  // New design props
-  theme?: "default" | "custom"; // "Predeterminado (Morado)" maps to "default"
+  /** Clave única del cliente para validación - OBLIGATORIO */
+  clientKey: string;
+  /** URL base de la API (ej: https://api.example.com) */
+  apiBaseUrl: string;
+  /** Endpoint de validación (se concatena con apiBaseUrl), default: /web-configs/validate */
+  validationEndpoint?: string;
+  /** Endpoint para iniciar chat (se concatena con apiBaseUrl), default: /chat/start */
+  chatStartEndpoint?: string;
+  /** Endpoint para enviar mensajes (se concatena con apiBaseUrl), default: /chat/message */
+  chatMessageEndpoint?: string;
+  // Design props
+  theme?: "default" | "custom";
   chatTitle?: string;
   chatSubtitle?: string;
   initialBotMessage?: string;
   inputPlaceholder?: string;
-  headerStyle?: "gradient" | "solid"; // "Degradado" maps to "gradient"
+  headerStyle?: "gradient" | "solid";
   widgetPosition?: "bottom-right" | "bottom-left" | "top-right" | "top-left";
   showLogo?: boolean;
   // Custom colors (only apply if theme is "custom")
-  userTextColor?: string; // Tailwind class, e.g., "text-white"
-  aiTextColor?: string; // Tailwind class, e.g., "text-gray-800"
-  primaryColor?: string; // Tailwind class for buttons/accents, e.g., "bg-purple-600"
-  botMessageBgColor?: string; // Tailwind class, e.g., "bg-gray-200"
-  userMessageBgColor?: string; // Tailwind class, e.g., "bg-purple-500"
-  floatingButtonColor?: string; // Tailwind class for floating button background
+  userTextColor?: string;
+  aiTextColor?: string;
+  primaryColor?: string;
+  botMessageBgColor?: string;
+  userMessageBgColor?: string;
+  floatingButtonColor?: string;
+  // Callbacks
+  onStatusChange?: (status: WidgetStatus) => void;
+  onError?: (error: string) => void;
 }
 
 // =============================================================================
@@ -128,7 +151,6 @@ function generateWidgetSessionId(): string {
   if (typeof window !== "undefined" && window.crypto?.randomUUID) {
     return window.crypto.randomUUID();
   }
-  // Fallback for older browsers
   return `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
 }
 
@@ -138,10 +160,10 @@ function generateWidgetSessionId(): string {
  */
 function collectBrowserContext(widgetSessionId: string): BrowserContext {
   if (typeof window === "undefined") {
-    // SSR fallback - should not happen in practice as this runs client-side
     return {
       origin: "",
       hostname: "",
+      pathname: "",
       userAgent: "",
       language: "",
       timezone: "",
@@ -153,6 +175,7 @@ function collectBrowserContext(widgetSessionId: string): BrowserContext {
   return {
     origin: window.location.origin,
     hostname: window.location.hostname,
+    pathname: window.location.pathname,
     userAgent: navigator.userAgent,
     language: navigator.language,
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -162,28 +185,20 @@ function collectBrowserContext(widgetSessionId: string): BrowserContext {
 }
 
 /**
- * Checks if the session token is still valid based on expiration time
- * Includes a 30-second buffer to prevent edge-case expiration during requests
- */
-function isSessionValid(expiresAt: number | null): boolean {
-  if (!expiresAt) return false;
-  const bufferMs = 30 * 1000; // 30 second buffer
-  return Date.now() < expiresAt - bufferMs;
-}
-
-/**
  * Maps backend status to user-friendly error messages
  */
 function getStatusErrorMessage(
-  status: SessionData["status"] | undefined,
+  status: ValidationResponse["status"] | undefined,
+  error?: string,
 ): string {
+  if (error) return error;
   switch (status) {
     case "blocked":
       return "Acceso bloqueado. Contacta al administrador.";
-    case "domain_mismatch":
-      return "Dominio no autorizado para este widget.";
-    case "expired":
-      return "La clave de cliente ha expirado.";
+    case "pending":
+      return "Tu clave está pendiente de activación.";
+    case "waiting_approval":
+      return "Tu solicitud está esperando aprobación del administrador.";
     default:
       return "Error de validación desconocido.";
   }
@@ -195,15 +210,14 @@ function getStatusErrorMessage(
 
 export function ChatWidget({
   clientKey,
-  validationApiUrl,
-  chatApiUrl,
-  chatStartApiUrl,
-  // assistantId and userId are NO LONGER accepted as props
-  // They are obtained from the backend handshake response and stored in sessionData
+  apiBaseUrl,
+  validationEndpoint = "/web-configs/validate",
+  chatStartEndpoint = "/chat/start",
+  chatMessageEndpoint = "/chat/message",
   theme = "default",
   chatTitle = "ChatBot SaaS",
   chatSubtitle = "Asistente virtual",
-  initialBotMessage = "¡Hola! Soy el asistente virtual de ChatBot SaaS. ¿En qué puedo ayudarte hoy?",
+  initialBotMessage = "¡Hola! Soy el asistente virtual. ¿En qué puedo ayudarte hoy?",
   inputPlaceholder = "Escribe tu mensaje...",
   headerStyle = "gradient",
   widgetPosition = "bottom-right",
@@ -214,7 +228,17 @@ export function ChatWidget({
   botMessageBgColor,
   userMessageBgColor,
   floatingButtonColor,
+  onStatusChange,
+  onError,
 }: ChatWidgetProps) {
+  // =========================================================================
+  // COMPUTED API URLS
+  // =========================================================================
+
+  const validationApiUrl = `${apiBaseUrl}${validationEndpoint}`;
+  const chatStartApiUrl = `${apiBaseUrl}${chatStartEndpoint}`;
+  const chatApiUrl = `${apiBaseUrl}${chatMessageEndpoint}`;
+
   // =========================================================================
   // STATE MANAGEMENT
   // =========================================================================
@@ -236,36 +260,18 @@ export function ChatWidget({
 
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  /**
-   * Unique session ID for this widget instance
-   * Generated once and persisted across re-renders using useRef
-   */
   const widgetSessionIdRef = useRef<string | null>(null);
-
-  /**
-   * Flag to prevent multiple concurrent validation attempts
-   */
   const isValidatingRef = useRef(false);
+  const hasInitializedRef = useRef(false);
 
   // =========================================================================
   // COMPUTED VALUES
   // =========================================================================
 
-  /**
-   * Determine if the widget is in an authorized state and ready for chat
-   */
   const isAuthorized = useMemo(() => {
-    return (
-      widgetStatus === "authorized" &&
-      sessionData !== null &&
-      isSessionValid(sessionData.expiresAt)
-    );
+    return widgetStatus === "approved" && sessionData !== null;
   }, [widgetStatus, sessionData]);
 
-  /**
-   * Determine effective theme colors based on props
-   */
   const currentThemeColors = useMemo(() => {
     if (theme === "custom") {
       return {
@@ -321,33 +327,34 @@ export function ChatWidget({
   );
 
   // =========================================================================
-  // SECURITY: HANDSHAKE & VALIDATION
+  // STATUS CHANGE EFFECT
+  // =========================================================================
+
+  useEffect(() => {
+    onStatusChange?.(widgetStatus);
+  }, [widgetStatus, onStatusChange]);
+
+  // =========================================================================
+  // SECURITY: AUTOMATIC HANDSHAKE ON MOUNT
   // =========================================================================
 
   /**
-   * Performs the initial handshake with the backend
+   * Performs the initial handshake with the backend AUTOMATICALLY
    *
-   * Security flow:
-   * 1. Generate unique widgetSessionId (only once per widget instance)
-   * 2. Collect browser context (domain, userAgent, etc.)
-   * 3. Send ONLY clientKey + browser context to validation endpoint
-   * 4. Backend validates and returns: sessionToken, assistantId, user_id, status
-   * 5. Store sessionToken, assistantId, userId in state (NEVER in props or storage)
-   * 6. NEVER send clientKey again after this point
-   * 7. All subsequent API calls use Authorization: Bearer <sessionToken>
+   * Flow:
+   * 1. Detect current domain automatically from window.location
+   * 2. Generate unique widgetSessionId
+   * 3. Send clientKey + domain info to validation endpoint
+   * 4. Backend checks if clientKey exists and is approved for this domain
+   * 5. If approved: returns valid: true, assistantId, apiKeyId
+   * 6. If pending/blocked: returns valid: false with status
    */
   const performHandshake = useCallback(async () => {
-    // Prevent multiple concurrent validation attempts
     if (isValidatingRef.current) {
       return;
     }
 
-    // Skip if already authorized and session is still valid
-    if (
-      widgetStatus === "authorized" &&
-      sessionData &&
-      isSessionValid(sessionData.expiresAt)
-    ) {
+    if (widgetStatus === "approved" && sessionData) {
       return;
     }
 
@@ -356,16 +363,13 @@ export function ChatWidget({
     setStatusMessage(null);
 
     try {
-      // Generate or reuse widget session ID
       if (!widgetSessionIdRef.current) {
         widgetSessionIdRef.current = generateWidgetSessionId();
       }
 
-      // Collect browser context for security validation
       const browserContext = collectBrowserContext(widgetSessionIdRef.current);
 
-      // Perform handshake request
-      // IMPORTANT: This is the ONLY time clientKey is sent to the backend
+      // Send validation request - backend handles everything automatically
       const response = await fetch(validationApiUrl, {
         method: "POST",
         headers: {
@@ -377,6 +381,7 @@ export function ChatWidget({
           context: {
             origin: browserContext.origin,
             hostname: browserContext.hostname,
+            pathname: browserContext.pathname,
             userAgent: browserContext.userAgent,
             language: browserContext.language,
             timezone: browserContext.timezone,
@@ -387,57 +392,49 @@ export function ChatWidget({
 
       const data: ValidationResponse = await response.json();
 
-      // Handle non-success responses
-      if (!response.ok || !data.success) {
-        const errorMessage = data.message || getStatusErrorMessage(data.status);
-        setWidgetStatus(
-          data.status === "blocked" || data.status === "domain_mismatch"
-            ? "blocked"
-            : "error",
-        );
-        setStatusMessage(errorMessage);
-        console.error("[ChatWidget] Validation failed:", errorMessage);
+      // Handle pending approval status
+      if (data.status === "pending" || data.status === "waiting_approval") {
+        setWidgetStatus("pending_approval");
+        setStatusMessage(getStatusErrorMessage(data.status, data.error));
         return;
       }
 
-      // Validate response contains ALL required session data
-      // Backend MUST return: sessionToken, expiresAt, status, assistantId, user_id
-      if (
-        !data.sessionToken ||
-        !data.expiresAt ||
-        data.status !== "active" ||
-        !data.assistantId ||
-        !data.user_id
-      ) {
+      // Handle blocked status
+      if (data.status === "blocked") {
+        setWidgetStatus("blocked");
+        setStatusMessage(getStatusErrorMessage(data.status, data.error));
+        onError?.(getStatusErrorMessage(data.status, data.error));
+        return;
+      }
+
+      // Handle non-valid responses
+      if (!response.ok || !data.valid) {
+        const errorMessage = getStatusErrorMessage(data.status, data.error);
+        setWidgetStatus("error");
+        setStatusMessage(errorMessage);
+        onError?.(errorMessage);
+        return;
+      }
+
+      // Validate response contains required session data
+      if (!data.assistantId) {
         setWidgetStatus("error");
         setStatusMessage("Respuesta de validación incompleta.");
-        console.error(
-          "[ChatWidget] Invalid validation response - missing required fields:",
-          {
-            hasSessionToken: !!data.sessionToken,
-            hasExpiresAt: !!data.expiresAt,
-            status: data.status,
-            hasAssistantId: !!data.assistantId,
-            hasUserId: !!data.user_id,
-          },
-        );
+        onError?.("Respuesta de validación incompleta del servidor.");
         return;
       }
+      console.log(data);
 
-      // Store session data in state ONLY (not props, localStorage, or cookies)
-      // sessionToken will be used for all subsequent requests via Authorization header
-      // assistantId and userId come from backend - NEVER from props
+      // Success - store session data
       setSessionData({
-        sessionToken: data.sessionToken,
-        expiresAt: data.expiresAt,
-        status: data.status,
         assistantId: data.assistantId,
-        userId: data.user_id,
+        apiKeyId: data.apiKeyId || "",
+        userId: data.userId,
+        clientKey,
       });
 
-      setWidgetStatus("authorized");
+      setWidgetStatus("approved");
       setStatusMessage(null);
-      console.log("[ChatWidget] Handshake successful, session established.");
 
       // Show initial bot message
       setMessages([
@@ -450,8 +447,9 @@ export function ChatWidget({
       ]);
     } catch (error) {
       setWidgetStatus("error");
-      setStatusMessage("No se pudo conectar con el servidor.");
-      console.error("[ChatWidget] Handshake error:", error);
+      const errorMsg = "No se pudo conectar con el servidor.";
+      setStatusMessage(errorMsg);
+      onError?.(errorMsg);
     } finally {
       isValidatingRef.current = false;
     }
@@ -461,38 +459,42 @@ export function ChatWidget({
     widgetStatus,
     sessionData,
     initialBotMessage,
+    onError,
   ]);
+
+  // =========================================================================
+  // AUTO-INITIALIZE ON COMPONENT MOUNT
+  // =========================================================================
+
+  useEffect(() => {
+    // Only run once on mount, automatically validate
+    if (!hasInitializedRef.current && clientKey && apiBaseUrl) {
+      hasInitializedRef.current = true;
+      performHandshake();
+    }
+  }, [clientKey, apiBaseUrl, performHandshake]);
 
   // =========================================================================
   // SECURE API HELPERS
   // =========================================================================
 
-  /**
-   * Creates authenticated headers using the session token
-   * SECURITY: Uses Bearer token authentication instead of exposing clientKey
-   */
   const getAuthenticatedHeaders = useCallback((): HeadersInit => {
-    if (!sessionData?.sessionToken) {
-      throw new Error("No session token available");
+    if (!sessionData?.clientKey) {
+      throw new Error("No client key available");
     }
 
     return {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${sessionData.sessionToken}`,
+      "X-Client-Key": sessionData.clientKey,
     };
   }, [sessionData]);
 
-  /**
-   * Checks if session needs refresh and handles accordingly
-   * Returns true if session is valid, false if needs re-authentication
-   */
   const ensureValidSession = useCallback(async (): Promise<boolean> => {
-    if (!sessionData || !isSessionValid(sessionData.expiresAt)) {
-      // Session expired or missing - need to re-authenticate
+    if (!sessionData) {
       setWidgetStatus("idle");
       setSessionData(null);
       await performHandshake();
-      return widgetStatus === "authorized";
+      return widgetStatus === "approved";
     }
     return true;
   }, [sessionData, performHandshake, widgetStatus]);
@@ -501,18 +503,6 @@ export function ChatWidget({
   // EFFECTS
   // =========================================================================
 
-  /**
-   * Trigger handshake when widget opens
-   */
-  useEffect(() => {
-    if (isOpen && widgetStatus === "idle") {
-      performHandshake();
-    }
-  }, [isOpen, widgetStatus, performHandshake]);
-
-  /**
-   * Auto-scroll to latest message
-   */
   useEffect(() => {
     if (isOpen && !isMinimized) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -523,16 +513,11 @@ export function ChatWidget({
   // MESSAGE HANDLERS
   // =========================================================================
 
-  /**
-   * Handles sending messages with secure authentication
-   * All requests use sessionToken via Authorization header
-   */
   const handleSendMessage = useCallback(
     async (e?: React.FormEvent) => {
       if (e) e.preventDefault();
       if (!input.trim() || !isAuthorized) return;
 
-      // Ensure session is still valid before making requests
       const sessionValid = await ensureValidSession();
       if (!sessionValid) {
         setMessages((prev) => [
@@ -550,7 +535,6 @@ export function ChatWidget({
       setIsTyping(true);
       const userInput = input.trim();
 
-      // If no chat exists yet, create one with the first message
       if (!currentChatId) {
         try {
           const chatStartResponse = await fetch(chatStartApiUrl, {
@@ -566,10 +550,6 @@ export function ChatWidget({
           const chatStartData = await chatStartResponse.json();
 
           if (!chatStartResponse.ok || !chatStartData.chat_id) {
-            console.error(
-              "[ChatWidget] Failed to start chat:",
-              chatStartData.error,
-            );
             setMessages([
               {
                 id: "error-start",
@@ -583,7 +563,8 @@ export function ChatWidget({
           }
 
           setCurrentChatId(chatStartData.chat_id);
-          setMessages([
+          setMessages((prev) => [
+            ...prev,
             {
               id: Date.now().toString(),
               content: userInput,
@@ -599,7 +580,6 @@ export function ChatWidget({
           ]);
           setInput("");
         } catch (err) {
-          console.error("[ChatWidget] Error starting chat:", err);
           setMessages((prev) => [
             ...prev,
             {
@@ -616,7 +596,6 @@ export function ChatWidget({
         return;
       }
 
-      // Chat already exists - send message to existing chat
       const userMessage: Message = {
         id: Date.now().toString(),
         content: userInput,
@@ -650,9 +629,7 @@ export function ChatWidget({
           };
           setMessages((prev) => [...prev, botMessage]);
         } else {
-          // Handle specific error cases
           if (response.status === 401) {
-            // Token expired or invalid - trigger re-authentication
             setWidgetStatus("idle");
             setSessionData(null);
             setStatusMessage("Sesión expirada. Reconectando...");
@@ -667,7 +644,7 @@ export function ChatWidget({
           };
           setMessages((prev) => [...prev, errorMessage]);
         }
-      } catch (error) {
+      } catch {
         const networkError: Message = {
           id: Date.now().toString() + "-network-error",
           content:
@@ -711,54 +688,80 @@ export function ChatWidget({
     setIsMinimized((prev) => !prev);
   }, []);
 
-  /**
-   * Handles closing the chat widget
-   * Clears all session data and resets to initial state
-   */
   const handleCloseChat = useCallback(() => {
     setIsOpen(false);
     setIsMinimized(false);
-    setMessages([]);
-    setCurrentChatId(null);
+  }, []);
 
-    // Reset security state - will require new handshake on next open
+  const handleRetryValidation = useCallback(() => {
     setWidgetStatus("idle");
     setSessionData(null);
     setStatusMessage(null);
-
-    // Note: widgetSessionIdRef is intentionally NOT cleared
-    // This allows the backend to track widget instances across opens/closes
-  }, []);
+    hasInitializedRef.current = false;
+    performHandshake();
+  }, [performHandshake]);
 
   // =========================================================================
   // RENDER HELPERS
   // =========================================================================
 
-  /**
-   * Renders appropriate content based on widget status
-   */
   const renderChatContent = () => {
     // Validating state
     if (widgetStatus === "validating") {
       return (
-        <div className="text-center text-gray-500 py-4">
-          <div className="flex justify-center mb-2">
-            <div className="flex space-x-1">
-              <div
-                className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"
-                style={{ animationDelay: "0ms" }}
-              />
-              <div
-                className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"
-                style={{ animationDelay: "150ms" }}
-              />
-              <div
-                className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"
-                style={{ animationDelay: "300ms" }}
-              />
-            </div>
+        <div className="flex flex-col items-center justify-center py-8 text-center">
+          <div className="flex space-x-1 mb-4">
+            <div
+              className="w-3 h-3 rounded-full bg-purple-500 animate-bounce"
+              style={{ animationDelay: "0ms" }}
+            />
+            <div
+              className="w-3 h-3 rounded-full bg-purple-500 animate-bounce"
+              style={{ animationDelay: "150ms" }}
+            />
+            <div
+              className="w-3 h-3 rounded-full bg-purple-500 animate-bounce"
+              style={{ animationDelay: "300ms" }}
+            />
           </div>
-          <p className="text-sm">Conectando...</p>
+          <p className="text-sm text-muted-foreground">Verificando acceso...</p>
+        </div>
+      );
+    }
+
+    // Pending approval state
+    if (widgetStatus === "pending_approval") {
+      return (
+        <div className="flex flex-col items-center justify-center py-8 text-center px-4">
+          <div className="bg-amber-100 dark:bg-amber-900/30 rounded-full p-4 mb-4">
+            <Clock className="h-8 w-8 text-amber-600 dark:text-amber-400" />
+          </div>
+          <h3 className="font-semibold text-foreground mb-2">
+            Solicitud Pendiente
+          </h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            {statusMessage ||
+              "Tu solicitud de acceso ha sido enviada automáticamente. Esperando aprobación del administrador."}
+          </p>
+          <div className="bg-muted/50 rounded-lg p-3 w-full max-w-xs">
+            <p className="text-xs text-muted-foreground">
+              <span className="font-medium">Dominio:</span>{" "}
+              {typeof window !== "undefined" ? window.location.hostname : "N/A"}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              <span className="font-medium">Client Key:</span>{" "}
+              {clientKey.substring(0, 12)}...
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRetryValidation}
+            className="mt-4 bg-transparent"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Verificar estado
+          </Button>
         </div>
       );
     }
@@ -766,12 +769,27 @@ export function ChatWidget({
     // Blocked or Error state
     if (widgetStatus === "blocked" || widgetStatus === "error") {
       return (
-        <div className="text-center text-red-500 py-4">
-          <p className="font-bold">Error de Carga del Chat</p>
-          <p className="text-sm">{statusMessage || "Dominio no autorizado."}</p>
-          <p className="text-sm mt-2">
-            Por favor, contacta al soporte para más información.
+        <div className="flex flex-col items-center justify-center py-8 text-center px-4">
+          <div className="bg-red-100 dark:bg-red-900/30 rounded-full p-4 mb-4">
+            <AlertCircle className="h-8 w-8 text-red-600 dark:text-red-400" />
+          </div>
+          <h3 className="font-semibold text-foreground mb-2">
+            {widgetStatus === "blocked"
+              ? "Acceso Denegado"
+              : "Error de Conexión"}
+          </h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            {statusMessage || "No se pudo conectar con el servidor."}
           </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRetryValidation}
+            className="bg-transparent"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Reintentar
+          </Button>
         </div>
       );
     }
@@ -779,7 +797,7 @@ export function ChatWidget({
     // Authorized but no messages yet
     if (messages.length === 0 && isAuthorized) {
       return (
-        <div className="text-center text-gray-500 py-4">
+        <div className="text-center text-muted-foreground py-4">
           Escribe un mensaje para empezar...
         </div>
       );
@@ -838,7 +856,7 @@ export function ChatWidget({
                     currentThemeColors.userAvatarBg,
                   )}
                 >
-                  <span className="text-xs font-medium text-gray-800 dark:text-white">
+                  <span className="text-xs font-medium text-foreground">
                     Tú
                   </span>
                 </div>
@@ -935,7 +953,7 @@ export function ChatWidget({
                   variant="ghost"
                   size="icon"
                   onClick={toggleMinimize}
-                  className="text-white hover:bg-white/20"
+                  className="text-white hover:bg-white/20 bg-transparent"
                   aria-label={isMinimized ? "Maximizar chat" : "Minimizar chat"}
                 >
                   {isMinimized ? (
@@ -948,7 +966,7 @@ export function ChatWidget({
                   variant="ghost"
                   size="icon"
                   onClick={handleCloseChat}
-                  className="text-white hover:bg-white/20"
+                  className="text-white hover:bg-white/20 bg-transparent"
                   aria-label="Cerrar chat"
                 >
                   <X className="h-5 w-5" />
@@ -967,42 +985,44 @@ export function ChatWidget({
                   transition={{ duration: 0.3 }}
                   className="flex flex-col flex-grow overflow-hidden"
                 >
-                  <CardContent className="flex-grow p-4 overflow-hidden bg-gray-50 dark:bg-gray-950">
+                  <CardContent className="flex-grow p-4 overflow-hidden bg-background">
                     <ScrollArea className="h-full pr-4">
                       {renderChatContent()}
                       <div ref={messagesEndRef} />
                     </ScrollArea>
                   </CardContent>
 
-                  {/* Chat Input */}
-                  <CardFooter className="p-4 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-                    <form
-                      onSubmit={handleSendMessage}
-                      className="flex w-full items-center space-x-2"
-                    >
-                      <Input
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyDown={handleKeyPress}
-                        placeholder={inputPlaceholder}
-                        className="flex-grow"
-                        disabled={isTyping || !isAuthorized}
-                        aria-label="Escribe tu mensaje"
-                      />
-                      <Button
-                        type="submit"
-                        size="icon"
-                        disabled={isTyping || !input.trim() || !isAuthorized}
-                        className={cn(
-                          currentThemeColors.primaryButtonBg,
-                          currentThemeColors.primaryButtonText,
-                        )}
-                        aria-label="Enviar mensaje"
+                  {/* Chat Input - only show when authorized */}
+                  {isAuthorized && (
+                    <CardFooter className="p-4 border-t border-border bg-background">
+                      <form
+                        onSubmit={handleSendMessage}
+                        className="flex w-full items-center space-x-2"
                       >
-                        <Send className="h-4 w-4" />
-                      </Button>
-                    </form>
-                  </CardFooter>
+                        <Input
+                          value={input}
+                          onChange={(e) => setInput(e.target.value)}
+                          onKeyDown={handleKeyPress}
+                          placeholder={inputPlaceholder}
+                          className="flex-grow"
+                          disabled={isTyping}
+                          aria-label="Escribe tu mensaje"
+                        />
+                        <Button
+                          type="submit"
+                          size="icon"
+                          disabled={isTyping || !input.trim()}
+                          className={cn(
+                            currentThemeColors.primaryButtonBg,
+                            currentThemeColors.primaryButtonText,
+                          )}
+                          aria-label="Enviar mensaje"
+                        >
+                          <Send className="h-4 w-4" />
+                        </Button>
+                      </form>
+                    </CardFooter>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
