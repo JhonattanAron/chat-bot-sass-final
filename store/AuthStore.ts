@@ -66,6 +66,7 @@ export const useAuthStore = create<AuthState>()(
           const res = await fetch(`${NEST_API_URL}/auth/register`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify(data),
           });
 
