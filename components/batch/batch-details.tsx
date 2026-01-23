@@ -48,10 +48,10 @@ export function BatchDetails({ batch, onExtract }: BatchDetailsProps) {
     setIsExtracting(true);
     try {
       const response = await fetch(
-        `http://localhost:8081/batches/${batch._id}/extract`,
+        `/api/backend/batches/${batch._id}/extract`,
         {
           method: "POST",
-        }
+        },
       );
 
       if (!response.ok) {
@@ -84,10 +84,10 @@ export function BatchDetails({ batch, onExtract }: BatchDetailsProps) {
     setIsGenerating(true);
     try {
       const response = await fetch(
-        `http://localhost:8081/batches/${batch._id}/generate`,
+        `/api/backend/batches/${batch._id}/generate`,
         {
           method: "POST",
-        }
+        },
       );
 
       if (!response.ok) {
@@ -118,9 +118,7 @@ export function BatchDetails({ batch, onExtract }: BatchDetailsProps) {
   const handleExport = async () => {
     setIsExporting(true);
     try {
-      const response = await fetch(
-        `http://localhost:8081/batches/${batch._id}/export`
-      );
+      const response = await fetch(`/api/backend/batches/${batch._id}/export`);
 
       if (!response.ok) {
         const data = await response.json();
@@ -175,10 +173,10 @@ export function BatchDetails({ batch, onExtract }: BatchDetailsProps) {
                 batch.status === "completed"
                   ? "default"
                   : batch.status === "processing"
-                  ? "secondary"
-                  : batch.status === "failed"
-                  ? "destructive"
-                  : "outline"
+                    ? "secondary"
+                    : batch.status === "failed"
+                      ? "destructive"
+                      : "outline"
               }
             >
               {batch.status}

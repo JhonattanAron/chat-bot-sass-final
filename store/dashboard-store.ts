@@ -1,6 +1,10 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
+/* =========================
+   TYPES
+========================= */
+
 export interface Bot {
   id: string;
   name: string;
@@ -43,49 +47,45 @@ export interface DashboardStore extends DashboardData {
   clearError: () => void;
 }
 
-const API_BASE_URL = "http://localhost:8081";
+/* =========================
+   STORE
+========================= */
 
 export const useDashboardStore = create<DashboardStore>()(
   devtools(
-    (set, get) => ({
+    (set) => ({
       stats: null,
       bots: [],
       tokenUsage: null,
       isLoading: false,
       error: null,
 
+      /* ---------- FETCH ALL ---------- */
       fetchDashboardData: async (userId: string) => {
         set({ isLoading: true, error: null });
-        try {
-          const [statsResponse, botsResponse, tokenResponse] =
-            await Promise.all([
-              fetch(`${API_BASE_URL}/dashboard/stats/${userId}`, {
-                credentials: "include",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-              }),
-              fetch(`${API_BASE_URL}/dashboard/bots/${userId}`, {
-                credentials: "include",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-              }),
-              fetch(`${API_BASE_URL}/dashboard/token-usage/${userId}`, {
-                credentials: "include",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-              }),
-            ]);
 
-          if (!statsResponse.ok || !botsResponse.ok || !tokenResponse.ok) {
+        try {
+          const [statsRes, botsRes, tokenRes] = await Promise.all([
+            fetch(`/api/dashboard/stats/${userId}`, {
+              credentials: "include",
+            }),
+            fetch(`/api/dashboard/bots/${userId}`, {
+              credentials: "include",
+            }),
+            fetch(`/api/dashboard/token-usage/${userId}`, {
+              credentials: "include",
+            }),
+          ]);
+
+          if (!statsRes.ok || !botsRes.ok || !tokenRes.ok) {
             throw new Error("Failed to fetch dashboard data");
           }
 
-          const stats = await statsResponse.json();
-          const bots = await botsResponse.json();
-          const tokenUsage = await tokenResponse.json();
+          const [stats, bots, tokenUsage] = await Promise.all([
+            statsRes.json(),
+            botsRes.json(),
+            tokenRes.json(),
+          ]);
 
           set({
             stats,
@@ -93,72 +93,63 @@ export const useDashboardStore = create<DashboardStore>()(
             tokenUsage,
             isLoading: false,
           });
-        } catch (error) {
+        } catch (err) {
           set({
-            error: error instanceof Error ? error.message : "An error occurred",
+            error:
+              err instanceof Error ? err.message : "Error loading dashboard",
             isLoading: false,
           });
         }
       },
 
+      /* ---------- FETCH BOTS ---------- */
       fetchBots: async (userId: string) => {
         try {
-          const response = await fetch(
-            `${API_BASE_URL}/dashboard/bots/${userId}`,
-            {
-              credentials: "include",
-              headers: {
-                "Content-Type": "application/json",
-              },
-            }
-          );
+          const res = await fetch(`/api/dashboard/bots/${userId}`, {
+            credentials: "include",
+          });
 
-          if (!response.ok) {
+          if (!res.ok) {
             throw new Error("Failed to fetch bots");
           }
 
-          const bots = await response.json();
+          const bots = await res.json();
           set({ bots });
-        } catch (error) {
+        } catch (err) {
           set({
-            error:
-              error instanceof Error ? error.message : "Failed to fetch bots",
+            error: err instanceof Error ? err.message : "Failed to fetch bots",
           });
         }
       },
 
+      /* ---------- FETCH TOKEN USAGE ---------- */
       fetchTokenUsage: async (userId: string) => {
         try {
-          const response = await fetch(
-            `${API_BASE_URL}/dashboard/token-usage/${userId}`,
-            {
-              credentials: "include",
-              headers: {
-                "Content-Type": "application/json",
-              },
-            }
-          );
+          const res = await fetch(`/api/dashboard/token-usage/${userId}`, {
+            credentials: "include",
+          });
 
-          if (!response.ok) {
+          if (!res.ok) {
             throw new Error("Failed to fetch token usage");
           }
 
-          const tokenUsage = await response.json();
+          const tokenUsage = await res.json();
           set({ tokenUsage });
-        } catch (error) {
+        } catch (err) {
           set({
             error:
-              error instanceof Error
-                ? error.message
+              err instanceof Error
+                ? err.message
                 : "Failed to fetch token usage",
           });
         }
       },
 
+      /* ---------- CLEAR ERROR ---------- */
       clearError: () => set({ error: null }),
     }),
     {
       name: "dashboard-store",
-    }
-  )
+    },
+  ),
 );

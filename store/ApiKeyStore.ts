@@ -1,7 +1,5 @@
 import { create } from "zustand";
 
-const NEST_API_URL = "https://api.aurentric.com";
-
 interface ApiKey {
   id: string;
   _id?: string;
@@ -22,7 +20,6 @@ interface ApiKeyState {
   error: string | null;
   currentUserId: string | null;
 
-  // Actions
   setUserId: (userId: string) => void;
   fetchApiKeys: (userId?: string) => Promise<void>;
   createApiKey: (name: string, userId?: string) => Promise<boolean>;
@@ -39,187 +36,104 @@ export const useApiKeyStore = create<ApiKeyState>((set, get) => ({
   error: null,
   currentUserId: null,
 
-  setUserId: (userId: string) => {
-    set({ currentUserId: userId });
-  },
+  setUserId: (userId) => set({ currentUserId: userId }),
 
-  fetchApiKeys: async (userId?: string) => {
+  fetchApiKeys: async (userId) => {
     const targetUserId = userId || get().currentUserId;
-
-    if (!targetUserId) {
-      set({ error: "User ID is required" });
-      return;
-    }
+    if (!targetUserId) return;
 
     set({ isLoading: true, error: null });
 
     try {
-      const response = await fetch(
-        `${NEST_API_URL}/api-key-validate/api-keys?user_id=${targetUserId}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-        },
+      const res = await fetch(
+        `/api/backend/api-key-validate/api-keys?user_id=${targetUserId}`,
+        { credentials: "include" },
       );
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      if (!res.ok) throw new Error("Failed to fetch api keys");
 
-      const data = await response.json();
+      const data = await res.json();
 
-      if (data && data.apiKeys && Array.isArray(data.apiKeys)) {
-        // Transform the backend response to match our frontend interface
-        const transformedApiKeys = data.apiKeys.map((key: any) => ({
-          id: key._id || key.id,
-          _id: key._id,
-          name: key.name,
-          key: key.key || `api_key_${key._id}`, // Generate a placeholder if key is not provided
-          isActive: key.isActive,
-          user_id: key.user_id,
-          createdAt: key.createdAt,
-          updatedAt: key.updatedAt,
-          lastUsed: key.lastUsed,
-        }));
-
-        set({
-          apiKeys: transformedApiKeys,
-          isLoading: false,
-          error: null,
-        });
-      } else {
-        // Handle case where apiKeys is undefined or not an array
-        set({
-          apiKeys: [],
-          isLoading: false,
-          error: null,
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching API keys:", error);
       set({
-        error:
-          error instanceof Error ? error.message : "Failed to fetch API keys",
+        apiKeys: Array.isArray(data.apiKeys)
+          ? data.apiKeys.map((k: any) => ({
+              id: k._id,
+              _id: k._id,
+              name: k.name,
+              key: k.key,
+              isActive: k.isActive,
+              user_id: k.user_id,
+              createdAt: k.createdAt,
+              updatedAt: k.updatedAt,
+              lastUsed: k.lastUsed,
+            }))
+          : [],
         isLoading: false,
-        apiKeys: [],
       });
+    } catch (err: any) {
+      set({ error: err.message, isLoading: false });
     }
   },
 
-  createApiKey: async (name: string, userId?: string) => {
+  createApiKey: async (name, userId) => {
     const targetUserId = userId || get().currentUserId;
-
-    if (!targetUserId) {
-      set({ error: "User ID is required" });
-      return false;
-    }
-
-    if (!name.trim()) {
-      set({ error: "API key name is required" });
-      return false;
-    }
+    if (!targetUserId || !name.trim()) return false;
 
     set({ isCreating: true, error: null });
 
     try {
-      const response = await fetch(
-        `${NEST_API_URL}/api-key-validate/api-keys`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            name: name.trim(),
-            user_id: targetUserId,
-          }),
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (data.message === "API Key created successfully" || data.apiKey) {
-        // Refresh the API keys list
-        await get().fetchApiKeys(targetUserId);
-        set({ isCreating: false, error: null });
-        return true;
-      } else {
-        throw new Error(data.error || "Failed to create API key");
-      }
-    } catch (error) {
-      console.error("Error creating API key:", error);
-      set({
-        error:
-          error instanceof Error ? error.message : "Failed to create API key",
-        isCreating: false,
+      const res = await fetch(`/api/backend/api-key-validate/api-keys`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name.trim(),
+          user_id: targetUserId,
+        }),
       });
+
+      if (!res.ok) throw new Error("Failed to create key");
+
+      await get().fetchApiKeys(targetUserId);
+      set({ isCreating: false });
+      return true;
+    } catch (err: any) {
+      set({ error: err.message, isCreating: false });
       return false;
     }
   },
 
-  deleteApiKey: async (keyId: string) => {
-    if (!keyId) {
-      set({ error: "API key ID is required" });
-      return false;
-    }
+  deleteApiKey: async (keyId) => {
+    if (!keyId) return false;
 
     set({ isDeleting: keyId, error: null });
 
     try {
-      const response = await fetch(
-        `${NEST_API_URL}/api-key-validate/api-keys/${keyId}`,
+      const res = await fetch(
+        `/api/backend/api-key-validate/api-keys/${keyId}`,
         {
           method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
           credentials: "include",
         },
       );
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      if (!res.ok) throw new Error("Failed to delete key");
 
-      const data = await response.json();
-
-      if (data.message === "API Key deleted successfully") {
-        // Remove the deleted key from the state
-        set((state) => ({
-          apiKeys: state.apiKeys.filter(
-            (key) => key.id !== keyId && key._id !== keyId,
-          ),
-          isDeleting: null,
-          error: null,
-        }));
-        return true;
-      } else {
-        throw new Error(data.error || "Failed to delete API key");
-      }
-    } catch (error) {
-      console.error("Error deleting API key:", error);
-      set({
-        error:
-          error instanceof Error ? error.message : "Failed to delete API key",
+      set((state) => ({
+        apiKeys: state.apiKeys.filter((k) => k.id !== keyId),
         isDeleting: null,
-      });
+      }));
+
+      return true;
+    } catch (err: any) {
+      set({ error: err.message, isDeleting: null });
       return false;
     }
   },
 
-  clearError: () => {
-    set({ error: null });
-  },
+  clearError: () => set({ error: null }),
 
-  reset: () => {
+  reset: () =>
     set({
       apiKeys: [],
       isLoading: false,
@@ -227,6 +141,5 @@ export const useApiKeyStore = create<ApiKeyState>((set, get) => ({
       isDeleting: null,
       error: null,
       currentUserId: null,
-    });
-  },
+    }),
 }));

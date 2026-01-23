@@ -94,7 +94,7 @@ export default function CampaignPage() {
   useEffect(() => {
     const fetchBatches = async () => {
       try {
-        const response = await fetch("http://localhost:8081/batches");
+        const response = await fetch("/api/backend/batches");
         if (!response.ok) throw new Error("Error al obtener los textos planos");
         const data: PlainTextExport[] = await response.json();
         setPlainTextExports(data);
@@ -127,7 +127,7 @@ ${content}
       if (selectedBatch.normalized_with_ai) {
         // 🔹 Si ya está analizado, solo traemos los datos del backend
         const response = await fetch(
-          `http://localhost:8081/batches/${selectedBatch._id}/json-analized`,
+          `/api/backend/batches/${selectedBatch._id}/json-analized`,
         );
         if (!response.ok) throw new Error("Error al obtener datos analizados");
         const data = await response.json();
@@ -164,17 +164,14 @@ ${content}
         setSuccessMessage("Datos analizados cargados correctamente ✅");
       } else {
         // 🔹 Si no está analizado, ejecutamos la lógica normal
-        const predictResponse = await fetch(
-          "http://localhost:8081/chat/model/predict",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              userId: "69386d627ec1e55a4a355b0c",
-              prompt: "",
-            }),
-          },
-        );
+        const predictResponse = await fetch("/api/backend/chat/model/predict", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: "69386d627ec1e55a4a355b0c",
+            prompt: "",
+          }),
+        });
 
         const { predict } = await predictResponse.json();
         const data = predict.messages[1].content;
@@ -182,7 +179,7 @@ ${content}
         console.log(dataJson);
 
         const updateResponse = await fetch(
-          `http://localhost:8081/batches/${selectedBatch._id}/analized`,
+          `/api/backend/batches/${selectedBatch._id}/analized`,
           {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
@@ -266,7 +263,7 @@ ${content}
     };
 
     try {
-      const response = await fetch("http://localhost:8081/mail/send-leads", {
+      const response = await fetch("/api/backend/mail/send-leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(leadsToSend),

@@ -51,7 +51,7 @@ function BatchDetailContent() {
 
     async function fetchEmails() {
       try {
-        const res = await fetch(`http://localhost:8081/batches/${id}/emails`, {
+        const res = await fetch(`/api/backend/batches/${id}/emails`, {
           cache: "no-store",
         });
 
@@ -115,17 +115,14 @@ function BatchDetailContent() {
     try {
       setLoading(true);
 
-      const res = await fetch(
-        `http://localhost:8081/batches/${id}/normalize-emails`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            user_id: session?.binding_id,
-            leads: leads,
-          }),
-        },
-      );
+      const res = await fetch(`/api/backend/batches/${id}/normalize-emails`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: session?.binding_id,
+          leads: leads,
+        }),
+      });
 
       if (!res.ok) {
         throw new Error("Failed to normalize emails");

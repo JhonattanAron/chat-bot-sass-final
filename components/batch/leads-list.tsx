@@ -31,9 +31,7 @@ export function LeadsList({ batchId, reloadTrigger }: LeadsListProps) {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch(
-          `http://localhost:8081/batches/${batchId}/leads`
-        );
+        const response = await fetch(`/api/backend/batches/${batchId}/leads`);
         if (!response.ok) {
           const data = await response.json();
           throw new Error(data.error || "Failed to fetch leads");
@@ -116,8 +114,8 @@ export function LeadsList({ batchId, reloadTrigger }: LeadsListProps) {
                     lead.extraction_status === "extracted"
                       ? "default"
                       : lead.extraction_status === "failed"
-                      ? "destructive"
-                      : "outline"
+                        ? "destructive"
+                        : "outline"
                   }
                 >
                   {lead.extraction_status}

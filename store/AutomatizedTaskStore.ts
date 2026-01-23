@@ -30,7 +30,7 @@ interface AutomatedTasksState {
   testEmailConnection: (emailConfig: any) => Promise<any>;
   handleWebhook: (taskId: string, payload: any) => Promise<any>;
 }
-const NEST_API_URL = "https://api.aurentric.com";
+const NEST_API_URL = "/api/backend";
 
 export const useAutomatedTasksStore = create<AutomatedTasksState>((set) => ({
   tasks: [],

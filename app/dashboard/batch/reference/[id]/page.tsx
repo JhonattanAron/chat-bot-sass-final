@@ -26,7 +26,7 @@ export default async function BatchPage({ params }: BatchPageProps) {
   const { id } = params;
 
   try {
-    const res = await fetch(`http://localhost:8081/batches/${id}`, {
+    const res = await fetch(`/api/backend/batches/${id}`, {
       cache: "no-store",
     });
 

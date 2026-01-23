@@ -62,29 +62,31 @@ export const useAuthStore = create<AuthState>()(
       clearError: () => set({ error: null }),
       register: async (data: RegisterData) => {
         set({ isLoading: true, error: null });
+
         try {
-          const res = await fetch(`${NEST_API_URL}/auth/register`, {
+          const res = await fetch("/api/auth/register", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
             body: JSON.stringify(data),
           });
 
+          const result = await res.json();
+
           if (!res.ok) {
-            const errorData = await res.json();
-            const errorMessage =
-              errorData.message || "Error al crear la cuenta";
+            const errorMessage = result?.message || "Error al crear la cuenta";
             set({ error: errorMessage, isLoading: false });
             return { success: false, error: errorMessage };
           }
 
           set({ isLoading: false });
           return { success: true };
-        } catch (error) {
+        } catch (err) {
           const errorMessage =
-            error instanceof Error
-              ? error.message
+            err instanceof Error
+              ? err.message
               : "Error al conectar con el servidor";
+
           set({ error: errorMessage, isLoading: false });
           return { success: false, error: errorMessage };
         }

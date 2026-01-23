@@ -8,7 +8,7 @@ interface WhatsAppLinkerProps {
   selectedPlatforms: string[];
 }
 
-const API_URL = "http://localhost:8081";
+const API_URL = "/api/backend";
 
 const WhatsAppLinker: FC<WhatsAppLinkerProps> = ({
   currentUser,

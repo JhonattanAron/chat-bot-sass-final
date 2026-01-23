@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
-const NEST_API_URL = "https://api.aurentric.com";
+const NEST_API_URL = "/api/backend";
 
 interface Profile {
   firstName: string;

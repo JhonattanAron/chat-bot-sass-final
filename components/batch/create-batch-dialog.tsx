@@ -33,7 +33,7 @@ export function CreateBatchDialog() {
 
     try {
       // Llamada al endpoint de NestJS en el puerto 8081
-      const res = await fetch("http://localhost:8081/batches", {
+      const res = await fetch("/api/backend/batches", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -48,7 +48,7 @@ export function CreateBatchDialog() {
 
       // Inicia el proceso de búsqueda en background (opcional)
       fetch(`/api/batches/${data._id}/search`, { method: "POST" }).catch(
-        (err) => console.error("[v0] Search API error:", err)
+        (err) => console.error("[v0] Search API error:", err),
       );
 
       setOpen(false);

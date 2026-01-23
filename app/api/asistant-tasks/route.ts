@@ -1,7 +1,5 @@
+import { env } from "@/env";
 import { NextRequest, NextResponse } from "next/server";
-
-// Cambia esto por la URL real de tu backend NestJS
-const NEST_API_URL = process.env.NEST_API_URL || "http://localhost:8081";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -10,15 +8,15 @@ export async function GET(req: NextRequest) {
   if (!user_id) {
     return NextResponse.json(
       { error: "Missing user_id query parameter" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   try {
     const response = await fetch(
-      `${NEST_API_URL}/users/assistant-chats?user_id=${encodeURIComponent(
-        user_id
-      )}`
+      `${env.NEST_API_URL}/users/assistant-chats?user_id=${encodeURIComponent(
+        user_id,
+      )}`,
     );
 
     const data = await response.json();
@@ -26,7 +24,7 @@ export async function GET(req: NextRequest) {
     if (!response.ok) {
       return NextResponse.json(
         { error: data.message || "Error fetching assistant chats" },
-        { status: response.status }
+        { status: response.status },
       );
     }
 
@@ -34,7 +32,7 @@ export async function GET(req: NextRequest) {
   } catch {
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -58,13 +56,13 @@ export async function POST(req: NextRequest) {
       if (!body[field]) {
         return NextResponse.json(
           { error: `Missing field: ${field}` },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
 
     // Llama al endpoint de NestJS
-    const response = await fetch(`${NEST_API_URL}/users/assistant-chat`, {
+    const response = await fetch(`${env.NEST_API_URL}/users/assistant-chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -75,7 +73,7 @@ export async function POST(req: NextRequest) {
     if (!response.ok) {
       return NextResponse.json(
         { error: data.message || "Error creating assistant chat" },
-        { status: response.status }
+        { status: response.status },
       );
     }
 
@@ -83,7 +81,7 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -96,23 +94,26 @@ export async function PATCH(req: NextRequest) {
     if (!id) {
       return NextResponse.json(
         { error: "Missing assistant chat id" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Llama al endpoint de actualización de tu backend (ajusta la ruta según tu API)
-    const response = await fetch(`${NEST_API_URL}/users/assistant-chat/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(updateFields),
-    });
+    const response = await fetch(
+      `${env.NEST_API_URL}/users/assistant-chat/${id}`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updateFields),
+      },
+    );
 
     const data = await response.json();
 
     if (!response.ok) {
       return NextResponse.json(
         { error: data.message || "Error updating assistant chat" },
-        { status: response.status }
+        { status: response.status },
       );
     }
 
@@ -120,7 +121,7 @@ export async function PATCH(req: NextRequest) {
   } catch {
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -132,22 +133,25 @@ export async function DELETE(req: NextRequest) {
     if (!id) {
       return NextResponse.json(
         { error: "Missing assistant chat id" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Llama al endpoint de eliminación de tu backend (ajusta la ruta según tu API)
-    const response = await fetch(`${NEST_API_URL}/users/assistant-chat/${id}`, {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-    });
+    const response = await fetch(
+      `${env.NEST_API_URL}/users/assistant-chat/${id}`,
+      {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      },
+    );
 
     const data = await response.json();
 
     if (!response.ok) {
       return NextResponse.json(
         { error: data.message || "Error deleting assistant chat" },
-        { status: response.status }
+        { status: response.status },
       );
     }
 
@@ -155,7 +159,7 @@ export async function DELETE(req: NextRequest) {
   } catch {
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
