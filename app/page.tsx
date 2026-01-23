@@ -15,9 +15,9 @@ import { Toaster } from "@/components/ui/toaster";
 export default function Home() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const CLIENT_KEY =
-    "317ff11abaf125986f8129f001efea226a5d0c9216ac24e48091e617bbf39ab7";
-  const ASSISTANT_ID = "69398394a5bac4c2b8659ca8";
-  const USER_ID = "6938644c9e7ff7ff4f5a1c81";
+    "e09c06905fa919493af795282f314dfba932755a4c2a77221f6b597534089b47";
+  const ASSISTANT_ID = "6972c87148822e85b447ca2f";
+  const USER_ID = "6972bbd448822e85b447ca11";
 
   const toggleChat = () => {
     setIsChatOpen(!isChatOpen);
@@ -35,26 +35,14 @@ export default function Home() {
       <FaqSection />
       <Footer />
       <ChatWidget
-        clientKey={CLIENT_KEY}
-        validationApiUrl="http://localhost:8081/api-key-validate/validate-client-key" // Points to the new validation API route
-        chatApiUrl="/api/chat/message" // Points to your existing chat message API route
-        chatStartApiUrl="/api/chat/start" // Points to your existing chat start API route
-        assistantId={ASSISTANT_ID}
-        userId={USER_ID}
-        chatTitle="My Custom Chatbot"
-        chatSubtitle="Powered by AIDEN AI"
-        initialBotMessage="Hola Bienvenido a nuestro software, la forma mas facil de implementar GPT-4 en tu negocio preguntame en que puedo ayudarte?"
-        inputPlaceholder="Ask me anything..."
-        theme="default" // or "custom"
-        // If theme is "custom", you can uncomment and set these:
-        // userTextColor="text-blue-100"
-        // aiTextColor="text-gray-900"
-        // primaryColor="bg-blue-700"
-        // botMessageBgColor="bg-blue-100"
-        // userMessageBgColor="bg-blue-700"
-        // floatingButtonColor="bg-blue-600"
+        clientKey="demo-client-key-12345"
+        validationApiUrl="/api/validate-sdk"
+        chatApiUrl="/api/chat/message"
+        chatStartApiUrl="/api/chat/start"
+        chatTitle="ChatBot SaaS"
+        chatSubtitle="Asistente virtual"
+        initialBotMessage="¡Hola! Soy el asistente virtual de ChatBot SaaS. ¿En qué puedo ayudarte hoy?"
         widgetPosition="bottom-right"
-        showLogo={true}
       />
     </main>
   );

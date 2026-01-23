@@ -58,6 +58,7 @@ import {
 } from "@/store/functionsStore";
 import { useChatStore } from "@/store/chatControlStore";
 import AdvancedBotTasks from "@/components/functions/automatizaciones-admin";
+import { ChatbotWebConfigPanel } from "@/components/chat_cuztomization/chat-config-sdk";
 
 interface BotData {
   id: string;
@@ -124,7 +125,7 @@ export default function EditBotPage({
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [selectedChatId, setSelectedChatId] = useState("1");
   const [chatTiitle, setChatTitle] = useState(
-    "Selecciona un Chat o Inicia uno nuevo"
+    "Selecciona un Chat o Inicia uno nuevo",
   );
   const {
     startChat,
@@ -148,7 +149,7 @@ export default function EditBotPage({
         description: parsed.description,
         stock: parsed.stock,
       };
-    })
+    }),
   );
 
   // Nuevo estado para la función que se está editando
@@ -167,7 +168,7 @@ export default function EditBotPage({
           description: parsed.description,
           stock: parsed.stock,
         };
-      })
+      }),
     );
   }, [products]);
 
@@ -269,7 +270,7 @@ export default function EditBotPage({
         session.binding_id,
         id,
         updatedFunctionData.id,
-        updatedFunctionData
+        updatedFunctionData,
       );
       toast({
         title: "Éxito",
@@ -283,7 +284,7 @@ export default function EditBotPage({
         title: "Error",
         description: `Error al editar la función: ${message.replace(
           /\.*$/,
-          ""
+          "",
         )}.`,
       });
     } finally {
@@ -597,9 +598,9 @@ export default function EditBotPage({
             "0" +
             Math.min(
               255,
-              Math.max(0, Number.parseInt(color, 16) + amount)
+              Math.max(0, Number.parseInt(color, 16) + amount),
             ).toString(16)
-          ).substr(-2)
+          ).substr(-2),
         )
     );
   }
@@ -674,8 +675,8 @@ export default function EditBotPage({
                     assistant?.status === "online"
                       ? "default"
                       : assistant.status === "maintenance"
-                      ? "outline"
-                      : "secondary"
+                        ? "outline"
+                        : "secondary"
                   }
                 >
                   {assistant &&
@@ -728,6 +729,12 @@ export default function EditBotPage({
                 className="text-xs sm:text-sm px-1 sm:px-3 py-2 rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all"
               >
                 Basic
+              </TabsTrigger>
+              <TabsTrigger
+                value="config"
+                className="text-xs sm:text-sm px-1 sm:px-3 py-2 rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all"
+              >
+                SKD WEB
               </TabsTrigger>
               <TabsTrigger
                 value="faqs"
@@ -849,6 +856,12 @@ export default function EditBotPage({
               </CardContent>
             </Card>
           </TabsContent>
+          <TabsContent value="config" className="space-y-4">
+            <ChatbotWebConfigPanel
+              assistantId={assistant._id || ""}
+              userId={session?.binding_id || ""}
+            />
+          </TabsContent>
           <TabsContent value="faqs" className="space-y-4">
             <Card>
               <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
@@ -945,7 +958,7 @@ export default function EditBotPage({
                                 handleLocalChange(
                                   index,
                                   "category",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                               placeholder="Category"
@@ -962,7 +975,7 @@ export default function EditBotPage({
                                 handleLocalChange(
                                   index,
                                   "question",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                               placeholder="What are your business hours?"
@@ -979,7 +992,7 @@ export default function EditBotPage({
                                 handleLocalChange(
                                   index,
                                   "answer",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                               placeholder="Our business hours are Monday to Friday, 9am to 5pm."
@@ -1138,7 +1151,7 @@ export default function EditBotPage({
                                   const updated = [...localProducts];
                                   updated[index].stock = Number.parseInt(
                                     e.target.value,
-                                    10
+                                    10,
                                   );
                                   setLocalProducts(updated);
                                 }}
@@ -1157,7 +1170,7 @@ export default function EditBotPage({
                                   available: product.available,
                                   tags: [],
                                 },
-                                session?.binding_id || ""
+                                session?.binding_id || "",
                               );
                               return toast({
                                 title: "Exito",
@@ -1317,7 +1330,7 @@ export default function EditBotPage({
                                                         type: string;
                                                         required?: boolean;
                                                       },
-                                                      paramIndex: number
+                                                      paramIndex: number,
                                                     ) => (
                                                       <Badge
                                                         key={paramIndex}
@@ -1328,7 +1341,7 @@ export default function EditBotPage({
                                                         {param.type})
                                                         {param.required && "*"}
                                                       </Badge>
-                                                    )
+                                                    ),
                                                   )}
                                                 </div>
                                               </div>
@@ -1441,7 +1454,7 @@ export default function EditBotPage({
                   <div
                     className={cn(
                       "border-r bg-gray-50 dark:bg-gray-900 transition-all duration-300",
-                      sidebarOpen ? "w-80" : "w-0 overflow-hidden"
+                      sidebarOpen ? "w-80" : "w-0 overflow-hidden",
                     )}
                   >
                     <div className="p-4 border-b">
@@ -1482,7 +1495,7 @@ export default function EditBotPage({
                               "w-full text-left px-4 py-3 transition-colors border-b",
                               selectedChatId === chat.id
                                 ? "bg-slate-100 font-semibold"
-                                : "bg-white hover:bg-slate-100"
+                                : "bg-white hover:bg-slate-100",
                             )}
                           >
                             <div className="flex flex-col w-full">
@@ -1522,7 +1535,7 @@ export default function EditBotPage({
                                 bot.chatSettings.primaryColor
                               }, ${adjustColor(
                                 bot.chatSettings.primaryColor || "#4f46e5",
-                                -30
+                                -30,
                               )})`
                             : (bot && bot.chatSettings?.primaryColor) ||
                               "#4f46e5",
@@ -1621,7 +1634,7 @@ export default function EditBotPage({
                                       minute: "2-digit",
                                       day: "2-digit",
                                       month: "short",
-                                    }
+                                    },
                                   )}
                               </p>
                             </div>
