@@ -36,10 +36,13 @@ export default function Home() {
       <FaqSection />
       <Footer />
       <ChatWidget
-        clientKey={env.NEXT_PUBLIC_CHAT_WIDGET_CLIENT_KEY}
+        clientKey={
+          env.NEXT_PUBLIC_CHAT_WIDGET_CLIENT_KEY ||
+          "wck_8acc50240c99d993c9b42ad9cd2c9b5f"
+        }
         apiBaseUrl="/api/backend"
-        chatTitle="Asistente Demo"
-        chatSubtitle="Siempre disponible"
+        chatTitle="Aurentric Asisstant"
+        chatSubtitle="Power By Aurentric AI Labs"
         initialBotMessage="Hola! Soy el asistente de demo. En que puedo ayudarte?"
         widgetPosition="bottom-right"
         onStatusChange={(status) => {
