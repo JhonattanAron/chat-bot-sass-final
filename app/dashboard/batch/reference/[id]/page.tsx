@@ -1,13 +1,12 @@
-import { redirect, notFound } from "next/navigation";
-import { DashboardHeader } from "@/components/batch/dashboard-header";
+import { notFound } from "next/navigation";
+import { DashboardLayout } from "@/components/dashboard-layout";
 import { BatchDetails } from "@/components/batch/batch-details";
 import { LeadsList } from "@/components/batch/leads-list";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
-import { DashboardLayout } from "@/components/dashboard-layout";
+import { env } from "@/env";
 
 interface Batch {
   _id: string;
-  id?: string; // para compatibilidad con componentes que usan batch.id
+  id?: string;
   user_id: string;
   search_query: string;
   total_urls: number;
@@ -18,21 +17,31 @@ interface Batch {
 }
 
 interface BatchPageProps {
-  params: { id: string };
-  batchFromApi: Batch;
+  params: Promise<{ id: string }>;
 }
 
 export default async function BatchPage({ params }: BatchPageProps) {
-  const { id } = params;
+  // ✅ Next.js 15: params es async
+  const { id } = await params;
 
   try {
-    const res = await fetch(`/api/backend/batches/${id}`, {
-      cache: "no-store",
-    });
+    const res = await fetch(
+      `${env.NEXT_PUBLIC_API_URL}/api/backend/batches/${id}`,
+      {
+        cache: "no-store",
+      },
+    );
+
+    if (!res.ok) {
+      notFound();
+    }
 
     const batchFromApi: Batch = await res.json();
-    // Mapear _id a id para compatibilidad con componentes
-    const batch: Batch = { ...batchFromApi, id: batchFromApi._id };
+
+    const batch: Batch = {
+      ...batchFromApi,
+      id: batchFromApi._id,
+    };
 
     return (
       <div className="flex min-h-screen flex-col bg-background">
