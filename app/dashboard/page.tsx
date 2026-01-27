@@ -251,8 +251,8 @@ export default function DashboardPage() {
                                 bot.status === "online"
                                   ? "bg-green-500"
                                   : bot.status === "maintenance"
-                                  ? "bg-yellow-500"
-                                  : "bg-red-500"
+                                    ? "bg-yellow-500"
+                                    : "bg-red-500"
                               }`}
                             />
                             <span className="text-sm font-medium">

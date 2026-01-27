@@ -108,6 +108,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         pathname.startsWith("/dashboard/campaign"),
     },
     {
+      href: "/dashboard/whatsapp-qr",
+      label: t("Whastapp QR"),
+      icon: TrendingUp,
+      active:
+        pathname === "/dashboard/whatsapp-qr" ||
+        pathname.startsWith("/dashboard/whatsapp-qr"),
+    },
+    {
       href: "/dashboard/analytics",
       label: t("analytics"),
       icon: BarChart3,
@@ -322,16 +330,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                           notification.type === "billing"
                             ? "default"
                             : notification.type === "warning"
-                            ? "destructive"
-                            : "outline"
+                              ? "destructive"
+                              : "outline"
                         }
                         className="text-xs"
                       >
                         {notification.type === "billing"
                           ? "Facturación"
                           : notification.type === "warning"
-                          ? "Advertencia"
-                          : "Soporte"}
+                            ? "Advertencia"
+                            : "Soporte"}
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground mt-1">
