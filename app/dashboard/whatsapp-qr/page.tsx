@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import QRCode from "react-qr-code";
 import { DashboardLayout } from "@/components/dashboard-layout";
@@ -18,6 +18,20 @@ export default function WhatsappTestPage() {
   /* ======================
      CONECTAR WHATSAPP
   ====================== */
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const res = await axios.get("/api/backend/whatsapp/session-status", {
+          params: { userId: session?.binding_id },
+        });
+        setConnected(res.data.connected);
+      } catch (err) {
+        console.error("No se pudo verificar la sesión", err);
+      }
+    };
+    checkSession();
+  }, []);
+
   const connectWhatsapp = async () => {
     setLoadingQr(true);
     try {
