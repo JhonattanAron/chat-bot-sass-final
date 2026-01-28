@@ -65,7 +65,27 @@ export default function WhatsappTestPage() {
   const sendBulk = async () => {
     if (!message) return alert("Escribe un mensaje");
     if (phones.length === 0) return alert("No hay números cargados");
-    if (!connected) return alert("WhatsApp no está conectado aún");
+
+    // Revisar estado de WhatsApp antes de enviar
+    try {
+      const statusRes = await axios.get(
+        "/api/backend/whatsapp/session-status",
+        {
+          params: { userId: session?.binding_id },
+        },
+      );
+
+      if (!statusRes.data.connected) {
+        setQr(null);
+        setConnected(false);
+        return alert(
+          "WhatsApp no está conectado. Escanea el QR para reconectar.",
+        );
+      }
+    } catch (err) {
+      console.error(err);
+      return alert("Error al verificar el estado de WhatsApp");
+    }
 
     setLoading(true);
     try {
