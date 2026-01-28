@@ -12,13 +12,14 @@ export default function WhatsappTestPage() {
   const [connected, setConnected] = useState(false);
   const [phones, setPhones] = useState<string[]>([]);
   const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loadingQr, setLoadingQr] = useState(false);
+  const [loadingSend, setLoadingSend] = useState(false);
 
   /* ======================
      CONECTAR WHATSAPP
   ====================== */
   const connectWhatsapp = async () => {
-    setLoading(true);
+    setLoadingQr(true);
     try {
       const res = await axios.post("/api/backend/whatsapp/start-session", {
         userId: session?.binding_id,
@@ -37,7 +38,7 @@ export default function WhatsappTestPage() {
       console.error(err);
       alert("Error al generar QR");
     } finally {
-      setLoading(false);
+      setLoadingQr(false);
     }
   };
 
@@ -87,7 +88,7 @@ export default function WhatsappTestPage() {
       return alert("Error al verificar el estado de WhatsApp");
     }
 
-    setLoading(true);
+    setLoadingSend(true);
     try {
       await axios.post("/api/backend/whatsapp/bulk", {
         userId: session?.binding_id,
@@ -99,7 +100,7 @@ export default function WhatsappTestPage() {
       console.error(err);
       alert("Error al enviar los mensajes");
     } finally {
-      setLoading(false);
+      setLoadingSend(false);
     }
   };
 
@@ -115,10 +116,10 @@ export default function WhatsappTestPage() {
           {!connected && (
             <button
               onClick={connectWhatsapp}
-              disabled={loading}
+              disabled={loadingQr}
               className="w-full bg-green-500 hover:bg-green-600 text-gray-900 font-semibold py-3 rounded-lg mb-6 transition"
             >
-              {loading ? "Generando QR..." : "🔗 Conectar WhatsApp"}
+              {loadingQr ? "Generando QR..." : "🔗 Conectar WhatsApp"}
             </button>
           )}
 
@@ -167,10 +168,12 @@ export default function WhatsappTestPage() {
 
           <button
             onClick={sendBulk}
-            disabled={loading || phones.length === 0 || !connected}
+            disabled={loadingSend || phones.length === 0 || !connected}
             className="w-full bg-blue-600 hover:bg-blue-700 text-gray-100 font-semibold py-3 rounded-lg transition"
           >
-            {loading ? "Enviando..." : `🚀 Enviar mensajes (${phones.length})`}
+            {loadingSend
+              ? "Enviando..."
+              : `🚀 Enviar mensajes (${phones.length})`}
           </button>
         </div>
       </div>
