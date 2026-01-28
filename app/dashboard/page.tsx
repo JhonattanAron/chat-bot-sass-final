@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { DashboardLayout } from "@/components/dashboard-layout";
+import { DashboardLayout } from "@/components/pages/dashboard/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import {
   Card,

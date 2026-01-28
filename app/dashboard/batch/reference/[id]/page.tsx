@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { DashboardLayout } from "@/components/dashboard-layout";
+import { DashboardLayout } from "@/components/pages/dashboard/dashboard-layout";
 import { BatchDetails } from "@/components/batch/batch-details";
 import { LeadsList } from "@/components/batch/leads-list";
 import { env } from "@/env";

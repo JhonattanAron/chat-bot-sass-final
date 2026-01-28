@@ -1,10 +1,25 @@
-import Link from "next/link"
-import { DashboardLayout } from "@/components/dashboard-layout"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, BarChart3, Bot, Edit, Globe, MessageSquare, Settings, Users } from "lucide-react"
+import Link from "next/link";
+import { DashboardLayout } from "@/components/pages/dashboard/dashboard-layout";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import {
+  ArrowLeft,
+  BarChart3,
+  Bot,
+  Edit,
+  Globe,
+  MessageSquare,
+  Settings,
+  Users,
+} from "lucide-react";
 
 export default function BotDetailsPage({ params }: { params: { id: string } }) {
   // This would normally be fetched from an API
@@ -18,7 +33,7 @@ export default function BotDetailsPage({ params }: { params: { id: string } }) {
     messages: 1245,
     activeUsers: 78,
     conversionRate: "24.3%",
-  }
+  };
 
   return (
     <DashboardLayout>
@@ -33,10 +48,16 @@ export default function BotDetailsPage({ params }: { params: { id: string } }) {
             </Link>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-3xl font-bold tracking-tight">{bot.name}</h1>
-                <Badge variant="default">{bot.status.charAt(0).toUpperCase() + bot.status.slice(1)}</Badge>
+                <h1 className="text-3xl font-bold tracking-tight">
+                  {bot.name}
+                </h1>
+                <Badge variant="default">
+                  {bot.status.charAt(0).toUpperCase() + bot.status.slice(1)}
+                </Badge>
               </div>
-              <p className="text-muted-foreground">View and analyze your chatbot performance.</p>
+              <p className="text-muted-foreground">
+                View and analyze your chatbot performance.
+              </p>
             </div>
           </div>
           <div className="flex gap-2">
@@ -58,32 +79,44 @@ export default function BotDetailsPage({ params }: { params: { id: string } }) {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Messages</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Total Messages
+              </CardTitle>
               <MessageSquare className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{bot.messages}</div>
-              <p className="text-xs text-muted-foreground">+180 from last week</p>
+              <p className="text-xs text-muted-foreground">
+                +180 from last week
+              </p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Active Users
+              </CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{bot.activeUsers}</div>
-              <p className="text-xs text-muted-foreground">+12 from yesterday</p>
+              <p className="text-xs text-muted-foreground">
+                +12 from yesterday
+              </p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Conversion Rate
+              </CardTitle>
               <BarChart3 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{bot.conversionRate}</div>
-              <p className="text-xs text-muted-foreground">+5.1% from last month</p>
+              <p className="text-xs text-muted-foreground">
+                +5.1% from last month
+              </p>
             </CardContent>
           </Card>
           <Card>
@@ -97,7 +130,9 @@ export default function BotDetailsPage({ params }: { params: { id: string } }) {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold capitalize">{bot.type}</div>
-              <p className="text-xs text-muted-foreground">Last active {bot.lastActive}</p>
+              <p className="text-xs text-muted-foreground">
+                Last active {bot.lastActive}
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -113,12 +148,16 @@ export default function BotDetailsPage({ params }: { params: { id: string } }) {
             <Card>
               <CardHeader>
                 <CardTitle>Bot Performance</CardTitle>
-                <CardDescription>View your chatbot's performance over time.</CardDescription>
+                <CardDescription>
+                  View your chatbot's performance over time.
+                </CardDescription>
               </CardHeader>
               <CardContent className="h-[300px] flex items-center justify-center">
                 <div className="text-center">
                   <BarChart3 className="mx-auto h-12 w-12 text-muted-foreground" />
-                  <p className="mt-2 text-sm text-muted-foreground">Performance chart will appear here</p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Performance chart will appear here
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -126,28 +165,40 @@ export default function BotDetailsPage({ params }: { params: { id: string } }) {
               <Card>
                 <CardHeader>
                   <CardTitle>Most Asked Questions</CardTitle>
-                  <CardDescription>The most frequently asked questions by your users.</CardDescription>
+                  <CardDescription>
+                    The most frequently asked questions by your users.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div className="flex justify-between">
-                      <span className="font-medium">What are your business hours?</span>
+                      <span className="font-medium">
+                        What are your business hours?
+                      </span>
                       <span className="text-muted-foreground">124 times</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="font-medium">How do I reset my password?</span>
+                      <span className="font-medium">
+                        How do I reset my password?
+                      </span>
                       <span className="text-muted-foreground">98 times</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="font-medium">Do you offer free shipping?</span>
+                      <span className="font-medium">
+                        Do you offer free shipping?
+                      </span>
                       <span className="text-muted-foreground">87 times</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="font-medium">What payment methods do you accept?</span>
+                      <span className="font-medium">
+                        What payment methods do you accept?
+                      </span>
                       <span className="text-muted-foreground">76 times</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="font-medium">How can I contact customer support?</span>
+                      <span className="font-medium">
+                        How can I contact customer support?
+                      </span>
                       <span className="text-muted-foreground">65 times</span>
                     </div>
                   </div>
@@ -156,7 +207,10 @@ export default function BotDetailsPage({ params }: { params: { id: string } }) {
               <Card>
                 <CardHeader>
                   <CardTitle>Popular Products</CardTitle>
-                  <CardDescription>Products most frequently viewed or purchased through the bot.</CardDescription>
+                  <CardDescription>
+                    Products most frequently viewed or purchased through the
+                    bot.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
@@ -185,14 +239,22 @@ export default function BotDetailsPage({ params }: { params: { id: string } }) {
               </Card>
             </div>
           </TabsContent>
-          <TabsContent value="conversations" className="h-[400px] flex items-center justify-center">
+          <TabsContent
+            value="conversations"
+            className="h-[400px] flex items-center justify-center"
+          >
             <div className="text-center">
               <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground" />
               <h3 className="mt-4 text-lg font-medium">Conversation History</h3>
-              <p className="mt-2 text-sm text-muted-foreground">View and analyze past conversations with your users.</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                View and analyze past conversations with your users.
+              </p>
             </div>
           </TabsContent>
-          <TabsContent value="analytics" className="h-[400px] flex items-center justify-center">
+          <TabsContent
+            value="analytics"
+            className="h-[400px] flex items-center justify-center"
+          >
             <div className="text-center">
               <BarChart3 className="mx-auto h-12 w-12 text-muted-foreground" />
               <h3 className="mt-4 text-lg font-medium">Detailed Analytics</h3>
@@ -201,15 +263,20 @@ export default function BotDetailsPage({ params }: { params: { id: string } }) {
               </p>
             </div>
           </TabsContent>
-          <TabsContent value="logs" className="h-[400px] flex items-center justify-center">
+          <TabsContent
+            value="logs"
+            className="h-[400px] flex items-center justify-center"
+          >
             <div className="text-center">
               <Bot className="mx-auto h-12 w-12 text-muted-foreground" />
               <h3 className="mt-4 text-lg font-medium">Bot Logs</h3>
-              <p className="mt-2 text-sm text-muted-foreground">Technical logs and error reports for your chatbot.</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Technical logs and error reports for your chatbot.
+              </p>
             </div>
           </TabsContent>
         </Tabs>
       </div>
     </DashboardLayout>
-  )
+  );
 }

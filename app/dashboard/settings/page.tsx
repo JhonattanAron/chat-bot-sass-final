@@ -4,7 +4,7 @@ import type React from "react";
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react"; // Assuming you're using next-auth
-import { DashboardLayout } from "@/components/dashboard-layout";
+import { DashboardLayout } from "@/components/pages/dashboard/dashboard-layout";
 import {
   Card,
   CardContent,
@@ -129,7 +129,7 @@ export default function SettingsPage() {
     await updatePassword(
       passwordForm.currentPassword,
       passwordForm.newPassword,
-      userId
+      userId,
     );
     setPasswordForm({
       currentPassword: "",
@@ -158,7 +158,7 @@ export default function SettingsPage() {
 
     if (
       window.confirm(
-        "Are you sure you want to delete your account? This action cannot be undone."
+        "Are you sure you want to delete your account? This action cannot be undone.",
       )
     ) {
       await deleteAccount(userId);

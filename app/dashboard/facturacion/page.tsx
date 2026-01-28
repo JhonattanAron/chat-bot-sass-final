@@ -1,7 +1,7 @@
 import { DashboardHeader } from "@/components/batch/dashboard-header";
 import { BatchList } from "@/components/batch/batch-list";
 import { CreateBatchDialog } from "@/components/batch/create-batch-dialog";
-import { DashboardLayout } from "@/components/dashboard-layout";
+import { DashboardLayout } from "@/components/pages/dashboard/dashboard-layout";
 import { PlansCheckout } from "@/components/checkout-form";
 
 export default async function BillingPage() {

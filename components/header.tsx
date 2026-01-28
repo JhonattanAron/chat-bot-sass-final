@@ -34,7 +34,7 @@ const Header = () => {
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
               <Image
-                src="/favicon.png"
+                src="logos/favicon.png"
                 alt="ChatBot SaaS Logo"
                 width={200}
                 height={300}

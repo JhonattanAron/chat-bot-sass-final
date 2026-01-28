@@ -25,12 +25,14 @@ const HeroSection = ({ openChat }: { openChat: () => void }) => {
             transition={{ duration: 0.5, delay: 0.2 }}
           >
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white leading-tight mb-4">
-              Crea tu propio chatbot para WhatsApp y tu página web en minutos
+              Aurentric AI Labs — Bots GPT-5 para WhatsApp y campañas multicanal
+              con IA.{" "}
+              <span className="text-primary">¡Empieza gratis ahora!</span>
             </h1>
             <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
-              Diseña, configura y administra tu bot de forma sencilla para
-              responder automáticamente a preguntas frecuentes, realizar pedidos
-              y más.
+              Diseña, configura y administra tus bots y campañas multicanal de
+              forma sencilla. Automatiza respuestas, envíos por WhatsApp, email
+              y adquisición de leads con IA avanzada.
             </p>
 
             <div className="flex flex-wrap gap-4 mb-10">
@@ -38,7 +40,7 @@ const HeroSection = ({ openChat }: { openChat: () => void }) => {
                 size="lg"
                 className="bg-primary text-white hover:bg-primary/90 font-medium text-lg"
               >
-                Prueba gratis por 14 días
+                Empieza gratis
               </Button>
               <Button
                 size="lg"
@@ -95,7 +97,7 @@ const HeroSection = ({ openChat }: { openChat: () => void }) => {
           >
             <div className="relative rounded-2xl overflow-hidden dark-gradient-bg p-6">
               <Image
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/assets_task_01jv5cv5ckf0z8s4n9than2nh9_1747159252_img_3-x4i6M3veqT6AmB21EyBCl602pWBVeM.webp"
+                src="/images/hero-image.png"
                 alt="AI Assistants"
                 width={600}
                 height={400}

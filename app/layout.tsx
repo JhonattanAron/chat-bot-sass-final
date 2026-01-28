@@ -11,8 +11,8 @@ export const metadata = {
   title: "Aurentric AI Labs - Create and manage your chatbots",
   description: "A platform to create and manage chatbots for web and WhatsApp",
   icons: {
-    icon: "/favicon.ico",
-    apple: "/favicon.png",
+    icon: "/logos/favicon.ico",
+    apple: "/logos/favicon.png",
   },
 };
 

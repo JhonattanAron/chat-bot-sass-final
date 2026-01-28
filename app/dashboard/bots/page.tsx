@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { DashboardLayout } from "@/components/dashboard-layout";
+import { DashboardLayout } from "@/components/pages/dashboard/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -263,8 +263,8 @@ export default function BotsPage() {
                       bot.status === "online"
                         ? "default"
                         : bot.status === "maintenance"
-                        ? "outline"
-                        : "secondary"
+                          ? "outline"
+                          : "secondary"
                     }
                   >
                     <Badge
@@ -272,8 +272,8 @@ export default function BotsPage() {
                         bot.status === "online"
                           ? "default"
                           : bot.status === "maintenance"
-                          ? "outline"
-                          : "secondary"
+                            ? "outline"
+                            : "secondary"
                       }
                     >
                       {bot.status

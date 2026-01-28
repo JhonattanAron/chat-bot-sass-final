@@ -1,7 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BatchList } from "@/components/batch/batch-list";
 import { CreateBatchDialog } from "@/components/batch/create-batch-dialog";
-import { DashboardLayout } from "@/components/dashboard-layout";
+import { DashboardLayout } from "@/components/pages/dashboard/dashboard-layout";
 import { EmailTable } from "@/components/email-table";
 
 interface EmailBatched {

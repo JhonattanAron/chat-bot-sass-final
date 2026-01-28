@@ -6,7 +6,7 @@ import type React from "react";
 import { useRef } from "react";
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { DashboardLayout } from "@/components/dashboard-layout";
+import { DashboardLayout } from "@/components/pages/dashboard/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -230,7 +230,7 @@ export default function CreateBotPage() {
   const handleUpdateFaq = (
     index: number,
     field: "question" | "answer" | "category",
-    value: string
+    value: string,
   ) => {
     const updatedFaqs = [...faqs];
     updatedFaqs[index] = { ...updatedFaqs[index], [field]: value };
@@ -406,7 +406,7 @@ export default function CreateBotPage() {
         setBusinessDescription(
           language === "en"
             ? "We are a fine dining restaurant specializing in international cuisine with a focus on local ingredients. Our chefs create unique dishes that blend traditional recipes with modern techniques."
-            : "Somos un restaurante de alta cocina especializado en cocina internacional con enfoque en ingredientes locales. Nuestros chefs crean platos únicos que combinan recetas tradicionales con técnicas modernas."
+            : "Somos un restaurante de alta cocina especializado en cocina internacional con enfoque en ingredientes locales. Nuestros chefs crean platos únicos que combinan recetas tradicionales con técnicas modernas.",
         );
         break;
       case "onlineStore":
@@ -470,7 +470,7 @@ export default function CreateBotPage() {
         setBusinessDescription(
           language === "en"
             ? "We are an e-commerce store offering high-quality products for home and office. Our selection includes electronics, furniture, and accessories, all carefully curated for quality and design."
-            : "Somos una tienda de comercio electrónico que ofrece productos de alta calidad para el hogar y la oficina. Nuestra selección incluye electrónica, muebles y accesorios, todos cuidadosamente seleccionados por su calidad y diseño."
+            : "Somos una tienda de comercio electrónico que ofrece productos de alta calidad para el hogar y la oficina. Nuestra selección incluye electrónica, muebles y accesorios, todos cuidadosamente seleccionados por su calidad y diseño.",
         );
         break;
       case "customerSupport":
@@ -532,7 +532,7 @@ export default function CreateBotPage() {
         setBusinessDescription(
           language === "en"
             ? "We provide customer support services for a wide range of software products. Our team of experts is trained to help users troubleshoot issues, answer questions, and provide guidance on product features."
-            : "Proporcionamos servicios de atención al cliente para una amplia gama de productos de software. Nuestro equipo de expertos está capacitado para ayudar a los usuarios a solucionar problemas, responder preguntas y proporcionar orientación sobre las características del producto."
+            : "Proporcionamos servicios de atención al cliente para una amplia gama de productos de software. Nuestro equipo de expertos está capacitado para ayudar a los usuarios a solucionar problemas, responder preguntas y proporcionar orientación sobre las características del producto.",
         );
         break;
       case "realEstate":
@@ -597,7 +597,7 @@ export default function CreateBotPage() {
         setBusinessDescription(
           language === "en"
             ? "We are a real estate agency specializing in residential and commercial properties. Our team of experienced agents helps clients find their perfect home or investment property, with a focus on premium locations and excellent customer service."
-            : "Somos una agencia inmobiliaria especializada en propiedades residenciales y comerciales. Nuestro equipo de agentes experimentados ayuda a los clientes a encontrar su hogar perfecto o propiedad de inversión, con un enfoque en ubicaciones premium y excelente servicio al cliente."
+            : "Somos una agencia inmobiliaria especializada en propiedades residenciales y comerciales. Nuestro equipo de agentes experimentados ayuda a los clientes a encontrar su hogar perfecto o propiedad de inversión, con un enfoque en ubicaciones premium y excelente servicio al cliente.",
         );
         break;
       case "appointments":
@@ -665,7 +665,7 @@ export default function CreateBotPage() {
         setBusinessDescription(
           language === "en"
             ? "We are a healthcare clinic offering a range of medical and wellness services. Our team of professionals includes doctors, therapists, and specialists who provide personalized care for all patients. We focus on preventive care and holistic treatment approaches."
-            : "Somos una clínica de salud que ofrece una variedad de servicios médicos y de bienestar. Nuestro equipo de profesionales incluye médicos, terapeutas y especialistas que brindan atención personalizada a todos los pacientes. Nos enfocamos en la atención preventiva y enfoques de tratamiento holísticos."
+            : "Somos una clínica de salud que ofrece una variedad de servicios médicos y de bienestar. Nuestro equipo de profesionales incluye médicos, terapeutas y especialistas que brindan atención personalizada a todos los pacientes. Nos enfocamos en la atención preventiva y enfoques de tratamiento holísticos.",
         );
         break;
       default:
@@ -749,7 +749,7 @@ export default function CreateBotPage() {
     (newIntegrations: Integration[]) => {
       setIntegrations(newIntegrations);
     },
-    []
+    [],
   );
 
   return (

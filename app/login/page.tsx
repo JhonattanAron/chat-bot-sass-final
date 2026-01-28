@@ -95,7 +95,7 @@ export default function LoginPage() {
         className="absolute left-8 top-8 flex items-center gap-2 font-bold md:left-12 md:top-12"
       >
         <Bot className="h-6 w-6" />
-        <span>Synthex Labs</span>
+        <span>Aurentric AI Labs</span>
       </Link>
 
       <Card className="w-full max-w-md">

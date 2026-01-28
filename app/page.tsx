@@ -2,23 +2,19 @@
 
 import { useState } from "react";
 import Header from "@/components/header";
-import HeroSection from "@/components/hero-section";
+import HeroSection from "@/components/pages/Home/hero-section";
 import FeaturesSection from "@/components/features-section";
-import PricingSection from "@/components/pricing-section";
-import TestimonialsSection from "@/components/testimonials-section";
+import PricingSection from "@/components/pages/Home/pricing-section";
+import TestimonialsSection from "@/components/pages/Home/testimonials-section";
 import UseCasesSection from "@/components/use-cases-section";
 import FaqSection from "@/components/faq-section";
-import Footer from "@/components/footer";
+import Footer from "@/components/pages/Home/footer";
 import { ChatWidget } from "@/components/chat-widget";
 import { Toaster } from "@/components/ui/toaster";
 import { env } from "@/env";
 
 export default function Home() {
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const CLIENT_KEY =
-    "e09c06905fa919493af795282f314dfba932755a4c2a77221f6b597534089b47";
-  const ASSISTANT_ID = "6972c87148822e85b447ca2f";
-  const USER_ID = "6972bbd448822e85b447ca11";
 
   const toggleChat = () => {
     setIsChatOpen(!isChatOpen);

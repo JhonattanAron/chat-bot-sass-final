@@ -20,6 +20,7 @@ import {
   X,
   Search,
 } from "lucide-react";
+import Image from "next/image";
 import {
   Sheet,
   SheetContent,
@@ -108,14 +109,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         pathname.startsWith("/dashboard/campaign"),
     },
     {
-      href: "/dashboard/whatsapp-qr",
-      label: t("Whastapp QR"),
-      icon: TrendingUp,
-      active:
-        pathname === "/dashboard/whatsapp-qr" ||
-        pathname.startsWith("/dashboard/whatsapp-qr"),
-    },
-    {
       href: "/dashboard/analytics",
       label: t("analytics"),
       icon: BarChart3,
@@ -185,7 +178,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   <Bot className="h-5 w-5 text-primary-foreground" />
                 </div>
                 <span className="text-lg font-bold bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
-                  ChatBot Builder
+                  Aurentric AI labs
                 </span>
                 <Button
                   variant="ghost"
@@ -243,11 +236,17 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </SheetContent>
         </Sheet>
         <Link href="/dashboard" className="flex items-center gap-2 font-bold">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/80">
-            <Bot className="h-5 w-5 text-primary-foreground" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-300 from-primary to-primary/80">
+            <Image
+              src="/logos/favicon.png"
+              alt="AI Assistants"
+              width={800}
+              height={600}
+              className="w-full h-auto rounded-xl"
+            />
           </div>
           <span className="hidden md:inline-block bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
-            ChatBot Builder
+            Aurentric AI labs
           </span>
         </Link>
         <div className="relative ml-auto flex-1 md:grow-0 md:basis-72">
