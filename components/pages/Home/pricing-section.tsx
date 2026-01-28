@@ -16,6 +16,7 @@ const plans = [
     annualPrice: 0,
 
     tokens: 50_000,
+    creditos: 50,
     conversationsMonth: 200,
     conversationsDay: 7,
     tokensPerConversation: 250,
@@ -46,6 +47,7 @@ const plans = [
     annualPrice: 702, // 10% descuento
 
     tokens: 10_000_000,
+    creditos: 650,
     conversationsMonth: 8_000,
     conversationsDay: 260,
     tokensPerConversation: 1250,
@@ -70,6 +72,7 @@ const plans = [
     annualPrice: 1080,
 
     tokens: 23_000_000,
+    creditos: 1000,
     conversationsMonth: 18_000,
     conversationsDay: 600,
     tokensPerConversation: 1300,
@@ -94,6 +97,7 @@ const plans = [
     annualPrice: 6426,
 
     tokens: 140_000_000,
+    creditos: 5950,
     conversationsMonth: 120_000,
     conversationsDay: 4_000,
     tokensPerConversation: 1200,
@@ -124,14 +128,14 @@ const services = [
     icon: Mail,
     description: "Scraping, normalización y envío de emails a gran escala.",
     free: "Bloqueado",
-    paid: "Pago por uso",
+    paid: "Consume Creditos",
   },
   {
     name: "Scraping de Leads",
     icon: Search,
     description: "Obtén leads desde Google Maps y sitios web automáticamente.",
     free: "Bloqueado",
-    paid: "Pago por uso",
+    paid: "Consume Creditos",
   },
 ];
 export function AnnualDiscountBadge({ isAnnual }: { isAnnual: boolean }) {
@@ -263,6 +267,7 @@ export default function CampaignsPricing() {
                 {/* Metrics */}
                 <div className="mb-8 space-y-3 text-sm">
                   {[
+                    ["Creditos", plan.creditos],
                     plan.name == "Free"
                       ? ["Tokens totales", `50K`]
                       : [

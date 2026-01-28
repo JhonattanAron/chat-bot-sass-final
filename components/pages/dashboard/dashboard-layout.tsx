@@ -39,6 +39,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { TokenCounterCompact } from "@/components/token-counter-compact";
 import { signOut, useSession } from "next-auth/react";
+import { PageWrapper } from "@/components/page-wrapper";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -85,6 +86,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       active: pathname === "/dashboard",
     },
     {
+      href: "/dashboard/campaign",
+      label: t("campaigns"),
+      icon: TrendingUp,
+      active:
+        pathname === "/dashboard/campaign" ||
+        pathname.startsWith("/dashboard/campaign"),
+    },
+    {
       href: "/dashboard/bots",
       label: t("myBots"),
       icon: Bot,
@@ -93,21 +102,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         pathname.startsWith("/dashboard/bots/"),
     },
     {
-      href: "/dashboard/batch",
-      label: t("Lotes de Busqueda"),
+      href: "/dashboard/scraping",
+      label: t("Scraping"),
       icon: BookText,
       active:
-        pathname === "/dashboard/batch" ||
-        pathname.startsWith("/dashboard/batch"),
+        pathname === "/dashboard/scraping" ||
+        pathname.startsWith("/dashboard/scraping"),
     },
-    {
-      href: "/dashboard/campaign",
-      label: t("campaigns"),
-      icon: TrendingUp,
-      active:
-        pathname === "/dashboard/campaign" ||
-        pathname.startsWith("/dashboard/campaign"),
-    },
+
     {
       href: "/dashboard/analytics",
       label: t("analytics"),
@@ -462,7 +464,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
           </div>
         </aside>
-        <main className="flex-1 overflow-auto md:ml-64">{children}</main>
+        <main className="flex-1 overflow-auto md:ml-64">
+          <PageWrapper> {children}</PageWrapper>
+        </main>
       </div>
     </div>
   );

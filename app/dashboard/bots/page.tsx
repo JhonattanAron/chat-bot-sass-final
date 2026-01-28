@@ -38,6 +38,7 @@ import {
 import { usePlansStore } from "@/store/plans-store";
 import { PlanLimitWarning } from "@/components/plan-limit-warning";
 import { toast } from "@/hooks/use-toast";
+import { PageWrapper } from "@/components/page-wrapper";
 
 export default function BotsPage() {
   const { getAssistants, assistants } = useChatAssistantStore();

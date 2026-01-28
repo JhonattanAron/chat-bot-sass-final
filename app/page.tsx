@@ -32,10 +32,7 @@ export default function Home() {
       <FaqSection />
       <Footer />
       <ChatWidget
-        clientKey={
-          env.NEXT_PUBLIC_CHAT_WIDGET_CLIENT_KEY ||
-          "wck_8acc50240c99d993c9b42ad9cd2c9b5f"
-        }
+        clientKey={env.NEXT_PUBLIC_CHAT_WIDGET_CLIENT_KEY}
         apiBaseUrl="/api/backend"
         chatTitle="Aurentric Asisstant"
         chatSubtitle="Power By Aurentric AI Labs"

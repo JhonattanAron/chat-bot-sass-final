@@ -20,7 +20,7 @@ const Footer = () => {
           <div>
             <Link href="/" className="inline-block mb-6">
               <Image
-                src="/placeholder.svg?height=40&width=180"
+                src="/logos"
                 alt="ChatBot SaaS Logo"
                 width={180}
                 height={40}
