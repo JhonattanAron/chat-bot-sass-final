@@ -15,45 +15,39 @@ export default function WhatsappTestPage() {
   const [loadingQr, setLoadingQr] = useState(false);
   const [loadingSend, setLoadingSend] = useState(false);
 
-  /* ======================
-     CONECTAR WHATSAPP
-  ====================== */
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const res = await axios.get("/api/backend/whatsapp/session-status", {
-          params: { userId: session?.binding_id },
-        });
-        setConnected(res.data.connected);
-      } catch (err) {
-        console.error("No se pudo verificar la sesión", err);
-      }
-    };
-    checkSession();
-  }, []);
-
   const connectWhatsapp = async () => {
     setLoadingQr(true);
-    try {
-      const res = await axios.post("/api/backend/whatsapp/start-session", {
-        userId: session?.binding_id,
-      });
+    setQr(null);
+    setConnected(false);
 
-      // El backend debe devolver { qr, connected }
-      const qrData = res.data.qr as string;
-      const isConnected = res.data.connected as boolean;
+    // 1. iniciar sesión (NO devuelve QR)
+    await axios.post("/api/backend/whatsapp/start-session", {
+      userId: session?.binding_id,
+    });
 
-      if (qrData && !isConnected) setQr(qrData);
-      if (isConnected) {
-        setConnected(true);
-        setQr(null);
+    // 2. polling del estado
+    const interval = setInterval(async () => {
+      try {
+        const res = await axios.get("/api/backend/whatsapp/session-state", {
+          params: { userId: session?.binding_id },
+        });
+
+        const { qr, connected } = res.data;
+
+        if (qr) {
+          setQr(qr);
+        }
+
+        if (connected) {
+          setConnected(true);
+          setQr(null);
+          setLoadingQr(false);
+          clearInterval(interval);
+        }
+      } catch (err) {
+        console.error("Error consultando estado", err);
       }
-    } catch (err) {
-      console.error(err);
-      alert("Error al generar QR");
-    } finally {
-      setLoadingQr(false);
-    }
+    }, 2000);
   };
 
   /* ======================
@@ -117,6 +111,18 @@ export default function WhatsappTestPage() {
       setLoadingSend(false);
     }
   };
+  useEffect(() => {
+    if (!session?.binding_id) return;
+
+    axios
+      .get("/api/backend/whatsapp/session-state", {
+        params: { userId: session.binding_id },
+      })
+      .then((res) => {
+        setQr(res.data.qr ?? null);
+        setConnected(res.data.connected ?? false);
+      });
+  }, [session?.binding_id]);
 
   return (
     <DashboardLayout>
