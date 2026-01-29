@@ -13,9 +13,12 @@ export const env = createEnv({
     PAYPAL_CLIENT_ID: z.string(),
     PAYPAL_CLIENT_SECRET: z.string(),
     PAYPAL_BASE_URL: z.string().url(),
+    PAYPHONE_TOKEN: z.string(),
+    PAYPHONE_STORE_ID: z.string(),
   },
 
   client: {
+    NEXT_PUBLIC_APP_URL: z.string().url(),
     NEXT_PUBLIC_API_URL: z.string().url(),
     NEXT_PUBLIC_PAYPAL_CLIENT_ID: z.string(),
     NEXT_PUBLIC_CHAT_WIDGET_CLIENT_KEY: z.string(),
@@ -38,5 +41,8 @@ export const env = createEnv({
     NEXT_PUBLIC_PAYPAL_CLIENT_ID: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID,
     NEXT_PUBLIC_CHAT_WIDGET_CLIENT_KEY:
       process.env.NEXT_PUBLIC_CHAT_WIDGET_CLIENT_KEY,
+    PAYPHONE_TOKEN: process.env.PAYPHONE_TOKEN,
+    PAYPHONE_STORE_ID: process.env.PAYPHONE_STORE_ID,
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   },
 });

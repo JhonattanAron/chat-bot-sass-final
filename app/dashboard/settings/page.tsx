@@ -33,7 +33,6 @@ import {
 import { ApiKeyManager } from "@/components/api-key-manager";
 import { useSettingsStore } from "@/store/SettingsStore";
 import { useToast } from "@/hooks/use-toast";
-import { PlansCheckout } from "@/components/checkout-form";
 
 export default function SettingsPage() {
   const { data: session, status } = useSession();

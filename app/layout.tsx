@@ -28,6 +28,7 @@ export default function RootLayout({
           {children}
           <Toaster />
         </Providers>
+        <div id="payphone-root"></div>
       </body>
     </html>
   );

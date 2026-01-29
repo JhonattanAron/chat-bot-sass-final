@@ -1,19 +1,25 @@
-// For full subscription capabilities, see capture-order.ts comments
-import { type NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    const { planId, planName, amount, email } = await request.json();
+    const { planId, planName, amount, email } = await req.json();
 
-    console.log("Creating PayPal order:", { planId, planName, amount });
+    if (!planId || !planName || !amount || !email) {
+      return NextResponse.json(
+        { message: "Missing parameters" },
+        { status: 400 },
+      );
+    }
 
-    const response = await fetch(
+    const token = await getPayPalToken();
+
+    const res = await fetch(
       `${process.env.PAYPAL_BASE_URL}/v2/checkout/orders`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${await getPayPalToken()}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           intent: "CAPTURE",
@@ -28,59 +34,56 @@ export async function POST(request: NextRequest) {
             },
           ],
           application_context: {
-            return_url: `${
-              process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-            }/checkout/success`,
-            cancel_url: `${
-              process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-            }/checkout`,
+            return_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout/success`,
+            cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout/cancel`,
+            brand_name: "Mi Empresa",
+            user_action: "PAY_NOW",
           },
         }),
-      }
+      },
     );
 
-    if (!response.ok) {
-      const error = await response.json();
-      console.error("PayPal error:", error);
-      return NextResponse.json(error, { status: response.status });
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error("PayPal error:", data);
+      return NextResponse.json(data, { status: res.status });
     }
 
-    const order = await response.json();
-    console.log("Order created:", order.id);
+    // Aquí sacamos el link de aprobación
+    const approveLink = data.links.find((l: any) => l.rel === "approve")?.href;
 
-    return NextResponse.json({ id: order.id });
-  } catch (error: any) {
-    console.error("Create order error:", error);
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    if (!approveLink) {
+      console.error("No se recibió link de aprobación", data);
+      return NextResponse.json(
+        { message: "No se recibió link de aprobación" },
+        { status: 500 },
+      );
+    }
+
+    return NextResponse.json({ approveLink });
+  } catch (err: any) {
+    console.error("Create order error:", err);
+    return NextResponse.json({ message: err.message }, { status: 500 });
   }
 }
 
 async function getPayPalToken() {
   const clientId = process.env.PAYPAL_CLIENT_ID;
   const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
-
-  if (!clientId || !clientSecret) {
-    throw new Error("PayPal credentials not configured");
-  }
-
   const auth = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
 
-  const response = await fetch(
-    `${process.env.PAYPAL_BASE_URL}/v1/oauth2/token`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Basic ${auth}`,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: "grant_type=client_credentials",
-    }
-  );
+  const res = await fetch(`${process.env.PAYPAL_BASE_URL}/v1/oauth2/token`, {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${auth}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: "grant_type=client_credentials",
+  });
 
-  if (!response.ok) {
-    throw new Error("Failed to get PayPal token");
-  }
+  if (!res.ok) throw new Error("Failed to get PayPal token");
 
-  const data = await response.json();
+  const data = await res.json();
   return data.access_token;
 }
