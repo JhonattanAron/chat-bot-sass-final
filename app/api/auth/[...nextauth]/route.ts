@@ -4,6 +4,7 @@ import NextAuth, { Session, User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import jwt from "jsonwebtoken";
+import { env } from "@/env";
 
 declare module "next-auth" {
   interface Session {
@@ -34,7 +35,7 @@ const handler = NextAuth({
 
       async authorize(credentials) {
         try {
-          const res = await fetch(`${process.env.NEST_API_URL}/auth/login`, {
+          const res = await fetch(`${env.NEST_API_URL}/auth/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -96,10 +97,12 @@ const handler = NextAuth({
   callbacks: {
     async signIn({ user, account }) {
       if (account?.provider === "google") {
+        console.log(env.NEST_API_URL);
+
         try {
           // Solicitar el token personalizado al backend
           const response = await fetch(
-            `${process.env.NEST_API_URL}/auth/google-login`,
+            `${env.NEST_API_URL}/auth/google-login`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -195,7 +198,7 @@ const handler = NextAuth({
     },
   },
 
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: env.NEXTAUTH_SECRET,
   pages: {
     signIn: ROUTES.PUBLIC.LOGIN, // Página personalizada de inicio de sesión
     signOut: ROUTES.PUBLIC.LOGIN, // Página personalizada de cierre de sesión

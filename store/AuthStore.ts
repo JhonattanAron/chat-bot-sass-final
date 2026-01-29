@@ -1,8 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-const NEST_API_URL = "https://api.aurentric.com";
-
 interface User {
   id: string;
   name: string;
