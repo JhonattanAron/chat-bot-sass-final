@@ -81,11 +81,11 @@ export default function LoginPage() {
   };
 
   const handleLoginGithub = async () => {
-    try {
-      await signIn("github", { callbackUrl: ROUTES.PROTECTED.DASHBOARD });
-    } catch (error) {
-      console.error("Error al iniciar sesión con GitHub:", error);
-    }
+    toast({
+      title: "No disponible",
+      description: "Por el momento solo puedes iniciar sesión con Google",
+      variant: "default",
+    });
   };
 
   return (
