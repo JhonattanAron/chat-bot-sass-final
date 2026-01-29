@@ -64,7 +64,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
 
         try {
-          const res = await fetch("/api/auth/register", {
+          const res = await fetch("/api/backend/auth/register", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
