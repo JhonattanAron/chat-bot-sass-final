@@ -20,7 +20,7 @@ const Footer = () => {
           <div>
             <Link href="/" className="inline-block mb-6">
               <Image
-                src="/logos"
+                src="/logos/favicon.png"
                 alt="ChatBot SaaS Logo"
                 width={180}
                 height={40}
