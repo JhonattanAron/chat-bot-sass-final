@@ -125,7 +125,7 @@ const Footer = () => {
             <ul className="space-y-3">
               <li>
                 <Link
-                  href="/terminos"
+                  href="legal/terminos"
                   className="hover:text-white transition-colors"
                 >
                   Términos de servicio
@@ -133,7 +133,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  href="/privacidad"
+                  href="legal/privacidad"
                   className="hover:text-white transition-colors"
                 >
                   Política de privacidad
@@ -141,7 +141,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  href="/cookies"
+                  href="legal/cookies"
                   className="hover:text-white transition-colors"
                 >
                   Política de cookies
@@ -149,7 +149,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  href="/legal"
+                  href="legal/aviso-legal"
                   className="hover:text-white transition-colors"
                 >
                   Aviso legal
@@ -157,7 +157,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  href="/devoluciones"
+                  href="legal/devoluciones"
                   className="hover:text-white transition-colors"
                 >
                   Política de devoluciones
