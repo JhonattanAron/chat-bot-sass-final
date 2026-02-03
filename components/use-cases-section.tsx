@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { motion } from "framer-motion"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Button } from "@/components/ui/button"
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import {
   UtensilsCrossed,
   ShoppingBag,
@@ -13,7 +13,7 @@ import {
   Briefcase,
   Shield,
   AlertTriangle,
-} from "lucide-react"
+} from "lucide-react";
 
 const useCases = [
   {
@@ -31,7 +31,11 @@ const useCases = [
       "Seguimiento de pedidos",
     ],
     chatExample: [
-      { role: "bot", message: "¡Hola! Bienvenido a Restaurante El Sabor. ¿En qué puedo ayudarte hoy?" },
+      {
+        role: "bot",
+        message:
+          "¡Hola! Bienvenido a Restaurante El Sabor. ¿En qué puedo ayudarte hoy?",
+      },
       { role: "user", message: "¿Tienen mesas disponibles para esta noche?" },
       {
         role: "bot",
@@ -61,7 +65,10 @@ const useCases = [
       "Notificaciones de stock",
     ],
     chatExample: [
-      { role: "bot", message: "¡Hola! Bienvenido a ModaExpress. ¿En qué puedo ayudarte hoy?" },
+      {
+        role: "bot",
+        message: "¡Hola! Bienvenido a ModaExpress. ¿En qué puedo ayudarte hoy?",
+      },
       { role: "user", message: "Estoy buscando una chaqueta de cuero" },
       {
         role: "bot",
@@ -91,7 +98,11 @@ const useCases = [
       "Encuestas de satisfacción",
     ],
     chatExample: [
-      { role: "bot", message: "¡Hola! Soy el asistente virtual de TechSupport. ¿Cómo puedo ayudarte hoy?" },
+      {
+        role: "bot",
+        message:
+          "¡Hola! Soy el asistente virtual de TechSupport. ¿Cómo puedo ayudarte hoy?",
+      },
       { role: "user", message: "Mi dispositivo no enciende" },
       {
         role: "bot",
@@ -110,7 +121,8 @@ const useCases = [
     id: "inmobiliarias",
     title: "Inmobiliarias",
     icon: <Building className="h-5 w-5" />,
-    description: "Gestiona consultas sobre propiedades, programa visitas y califica leads automáticamente.",
+    description:
+      "Gestiona consultas sobre propiedades, programa visitas y califica leads automáticamente.",
     image: "/placeholder.svg?height=400&width=600",
     features: [
       "Búsqueda de propiedades",
@@ -120,8 +132,15 @@ const useCases = [
       "Seguimiento automático",
     ],
     chatExample: [
-      { role: "bot", message: "¡Hola! Soy el asistente virtual de InmoCasa. ¿En qué puedo ayudarte hoy?" },
-      { role: "user", message: "Busco un apartamento de 2 habitaciones en el centro" },
+      {
+        role: "bot",
+        message:
+          "¡Hola! Soy el asistente virtual de InmoCasa. ¿En qué puedo ayudarte hoy?",
+      },
+      {
+        role: "user",
+        message: "Busco un apartamento de 2 habitaciones en el centro",
+      },
       {
         role: "bot",
         message:
@@ -139,7 +158,8 @@ const useCases = [
     id: "citas",
     title: "Gestión de Citas",
     icon: <CalendarClock className="h-5 w-5" />,
-    description: "Automatiza la programación de citas para consultorios médicos, salones de belleza y otros servicios.",
+    description:
+      "Automatiza la programación de citas para consultorios médicos, salones de belleza y otros servicios.",
     image: "/placeholder.svg?height=400&width=600",
     features: [
       "Programación automática",
@@ -149,8 +169,15 @@ const useCases = [
       "Confirmaciones automáticas",
     ],
     chatExample: [
-      { role: "bot", message: "¡Hola! Soy el asistente virtual de Clínica Bienestar. ¿En qué puedo ayudarte hoy?" },
-      { role: "user", message: "Necesito programar una cita con el Dr. García" },
+      {
+        role: "bot",
+        message:
+          "¡Hola! Soy el asistente virtual de Clínica Bienestar. ¿En qué puedo ayudarte hoy?",
+      },
+      {
+        role: "user",
+        message: "Necesito programar una cita con el Dr. García",
+      },
       {
         role: "bot",
         message:
@@ -164,22 +191,30 @@ const useCases = [
       },
     ],
   },
-]
+];
 
 const UseCasesSection = () => {
-  const [activeTab, setActiveTab] = useState("restaurantes")
+  const [activeTab, setActiveTab] = useState("restaurantes");
 
   return (
     <section id="casos-de-uso" className="py-16 md:py-24">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">Casos de uso de nuestros chatbots</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">
+            Casos de uso de nuestros chatbots
+          </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Descubre cómo nuestros chatbots pueden adaptarse a diferentes industrias y necesidades
+            Descubre cómo nuestros chatbots pueden adaptarse a diferentes
+            industrias y necesidades
           </p>
         </div>
 
-        <Tabs defaultValue="restaurantes" value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs
+          defaultValue="restaurantes"
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="w-full"
+        >
           <TabsList className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-8">
             {useCases.map((useCase) => (
               <TabsTrigger
@@ -190,7 +225,9 @@ const UseCasesSection = () => {
                 <span className="flex items-center">
                   <span className="mr-2">{useCase.icon}</span>
                   <span className="hidden md:inline">{useCase.title}</span>
-                  <span className="md:hidden">{useCase.title.split(" ")[0]}</span>
+                  <span className="md:hidden">
+                    {useCase.title.split(" ")[0]}
+                  </span>
                 </span>
               </TabsTrigger>
             ))}
@@ -205,7 +242,9 @@ const UseCasesSection = () => {
                 className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center"
               >
                 <div>
-                  <h3 className="text-2xl font-bold mb-4 text-gray-900">Chatbot para {useCase.title}</h3>
+                  <h3 className="text-2xl font-bold mb-4 text-gray-900">
+                    Chatbot para {useCase.title}
+                  </h3>
                   <p className="text-gray-600 mb-6">{useCase.description}</p>
 
                   <ul className="space-y-2 mb-6">
@@ -217,17 +256,26 @@ const UseCasesSection = () => {
                     ))}
                   </ul>
 
-                  <Button className="bg-primary hover:bg-primary/90 text-white">Ver demostración</Button>
+                  <Button className="bg-primary hover:bg-primary/90 text-white">
+                    Ver demostración
+                  </Button>
                 </div>
 
                 <div className="bg-white rounded-xl shadow-md overflow-hidden">
-                  <div className="p-4 bg-primary text-white font-medium">Ejemplo de conversación</div>
+                  <div className="p-4 bg-primary text-white font-medium">
+                    Ejemplo de conversación
+                  </div>
                   <div className="p-4 max-h-96 overflow-y-auto">
                     {useCase.chatExample.map((message, index) => (
-                      <div key={index} className={`mb-4 ${message.role === "user" ? "text-right" : "text-left"}`}>
+                      <div
+                        key={index}
+                        className={`mb-4 ${message.role === "user" ? "text-right" : "text-left"}`}
+                      >
                         <div
                           className={`inline-block p-3 rounded-lg max-w-[80%] ${
-                            message.role === "user" ? "bg-primary/10 text-gray-800" : "bg-gray-100 text-gray-800"
+                            message.role === "user"
+                              ? "bg-primary/10 text-gray-800"
+                              : "bg-gray-100 text-gray-800"
                           }`}
                         >
                           {message.message}
@@ -240,170 +288,128 @@ const UseCasesSection = () => {
             </TabsContent>
           ))}
         </Tabs>
-
-        {/* Asistente Virtual Empresarial - Sección Especial */}
+        {/* Ecosistema de Bots IA */}
         <div className="mt-20">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
-            className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl p-8 md:p-12 border border-primary/20"
+            className="rounded-2xl border border-primary/20 p-8 md:p-12 bg-gradient-to-br from-primary/5 to-primary/10"
           >
-            <div className="flex items-center mb-6">
-              <Briefcase className="h-8 w-8 text-primary mr-4" />
-              <h3 className="text-3xl font-bold text-gray-900">Asistente Virtual Empresarial</h3>
-            </div>
-
-            <p className="text-xl text-gray-700 mb-4">Tu colaborador digital 24/7</p>
-
-            <p className="text-gray-600 mb-8 text-lg leading-relaxed">
-              Este asistente virtual no es solo un chatbot. Es un asistente inteligente que trabaja dentro de tu
-              empresa, apoyando al equipo en tareas clave como si fuera un colaborador más. Actúa como un copiloto de
-              operaciones capaz de interactuar con sistemas, bases de datos y plataformas internas para ayudarte a tomar
-              decisiones, ahorrar tiempo y mantener el control.
-            </p>
-
-            {/* Advertencia técnica */}
-            <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 mb-8 flex items-start">
-              <AlertTriangle className="h-5 w-5 text-primary mr-3 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="text-gray-900 font-medium mb-1">Configuración técnica requerida</p>
-                <p className="text-gray-700 text-sm">
-                  Este caso de uso requiere configuración avanzada y debe ser administrado por un desarrollador o
-                  programador con conocimientos en APIs e integraciones de sistemas.
-                </p>
-              </div>
-            </div>
-
-            <h4 className="text-2xl font-semibold text-gray-900 mb-6">Funcionalidades principales:</h4>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-              <div className="space-y-6">
-                <div>
-                  <h5 className="font-semibold text-primary mb-2 flex items-center">
-                    <Shield className="h-4 w-4 mr-2" />
-                    Verificación de seguridad digital
-                  </h5>
-                  <ul className="text-gray-600 space-y-1 text-sm">
-                    <li>"¿Hubo intentos de acceso fallidos hoy?"</li>
-                    <li>"¿Los sistemas están protegidos con doble autenticación?"</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h5 className="font-semibold text-primary mb-2">Estado financiero y control de cuentas</h5>
-                  <ul className="text-gray-600 space-y-1 text-sm">
-                    <li>"¿Cuánto se ha cobrado esta semana?"</li>
-                    <li>"¿Qué facturas siguen pendientes de pago?"</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h5 className="font-semibold text-primary mb-2">Reportes y resúmenes automatizados</h5>
-                  <ul className="text-gray-600 space-y-1 text-sm">
-                    <li>"Genera el reporte de ventas mensual."</li>
-                    <li>"Prepárame el resumen de rendimiento de cada área."</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h5 className="font-semibold text-primary mb-2">Gestión de tareas y recordatorios</h5>
-                  <ul className="text-gray-600 space-y-1 text-sm">
-                    <li>"Agrega una tarea para revisar los contratos."</li>
-                    <li>"Recuérdame hacer seguimiento a ese cliente el viernes."</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h5 className="font-semibold text-primary mb-2">Análisis de desempeño y productividad</h5>
-                  <ul className="text-gray-600 space-y-1 text-sm">
-                    <li>"¿Qué empleado resolvió más tickets de soporte esta semana?"</li>
-                    <li>"¿Cuántas visitas tuvo la web hoy?"</li>
-                  </ul>
-                </div>
-              </div>
-
-              <div className="space-y-6">
-                <div>
-                  <h5 className="font-semibold text-primary mb-2">Soporte al área de Recursos Humanos</h5>
-                  <ul className="text-gray-600 space-y-1 text-sm">
-                    <li>"¿Quién está de vacaciones esta semana?"</li>
-                    <li>"¿Cuántos días de permiso pidió Juan este mes?"</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h5 className="font-semibold text-primary mb-2">Control de stock e inventario</h5>
-                  <ul className="text-gray-600 space-y-1 text-sm">
-                    <li>"¿Cuánto queda del producto estrella?"</li>
-                    <li>"Envía alerta si hay menos de 10 unidades."</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h5 className="font-semibold text-primary mb-2">Seguimiento a proyectos o clientes</h5>
-                  <ul className="text-gray-600 space-y-1 text-sm">
-                    <li>"¿En qué estado está el proyecto con el cliente Acme?"</li>
-                    <li>"¿El equipo ya entregó la cotización?"</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h5 className="font-semibold text-primary mb-2">Automatización de tareas diarias</h5>
-                  <ul className="text-gray-600 space-y-1 text-sm">
-                    <li>"Envía el resumen del día al canal de Slack del equipo."</li>
-                    <li>"Cierra las tareas pendientes de la semana pasada."</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h5 className="font-semibold text-primary mb-2">🆕 Verificación de cumplimiento legal</h5>
-                  <ul className="text-gray-600 space-y-1 text-sm">
-                    <li>"¿Hay documentos legales por renovar este mes?"</li>
-                    <li>"¿Cumplimos con las políticas de privacidad actuales (GDPR)?"</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg p-6 border border-primary/20">
-              <h5 className="font-semibold text-gray-900 mb-3">Integraciones disponibles:</h5>
-              <p className="text-gray-600 mb-4">
-                Este asistente puede ser accesible por voz, chat o panel web interno, y se integra con herramientas
-                como:
+            <div className="text-center mb-12">
+              <h3 className="text-3xl font-bold text-gray-900 mb-4">
+                Ecosistema de Bots con Inteligencia Artificial
+              </h3>
+              <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+                Una plataforma unificada donde chatbots y bots telefónicos
+                trabajan juntos para automatizar ventas, soporte y operaciones
+                empresariales.
               </p>
-              <div className="flex flex-wrap gap-2">
+            </div>
+
+            {/* Tipos de bots */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-14">
+              <div className="bg-white rounded-xl p-6 border shadow-sm">
+                <h4 className="text-xl font-semibold text-gray-900 mb-3">
+                  Chatbots para Web y WhatsApp
+                </h4>
+                <p className="text-gray-600 mb-4">
+                  Bots conversacionales diseñados para atender clientes en
+                  tiempo real, resolver dudas, calificar leads y cerrar ventas
+                  automáticamente desde canales digitales.
+                </p>
+                <ul className="space-y-2 text-gray-700 text-sm">
+                  <li>• Atención instantánea 24/7</li>
+                  <li>• Calificación automática de clientes</li>
+                  <li>• Ventas, reservas y agendamiento</li>
+                  <li>• Integración con CRM y sistemas internos</li>
+                </ul>
+              </div>
+
+              <div className="bg-white rounded-xl p-6 border shadow-sm">
+                <h4 className="text-xl font-semibold text-gray-900 mb-3">
+                  Bots Telefónicos con IA
+                </h4>
+                <p className="text-gray-600 mb-4">
+                  Bots de voz capaces de gestionar llamadas entrantes y
+                  salientes con conversaciones naturales, fluidas y orientadas a
+                  resultados.
+                </p>
+                <ul className="space-y-2 text-gray-700 text-sm">
+                  <li>• Atención de llamadas entrantes</li>
+                  <li>• Llamadas salientes automatizadas</li>
+                  <li>• Voz natural y conversaciones humanas</li>
+                  <li>• Transferencia a agentes cuando es necesario</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Capacidades compartidas */}
+            <div className="mb-14">
+              <h4 className="text-2xl font-semibold text-gray-900 mb-6 text-center">
+                Capacidades compartidas en todos los bots
+              </h4>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-gray-700">
                 {[
-                  "Slack",
-                  "Microsoft Teams",
-                  "Notion",
-                  "Google Drive",
-                  "Trello",
-                  "Asana",
-                  "Zapier",
-                  "APIs personalizadas",
-                ].map((tool) => (
-                  <span key={tool} className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">
-                    {tool}
-                  </span>
+                  "Comprensión avanzada del lenguaje natural",
+                  "Conversaciones humanas en tiempo real",
+                  "Calificación de leads y filtrado de clientes",
+                  "Automatización de ventas y citas",
+                  "Soporte al cliente y FAQs",
+                  "Integración con CRM y sistemas internos",
+                  "Memoria contextual de conversaciones",
+                  "Soporte multilingüe",
+                  "Disponibilidad 24/7",
+                ].map((item) => (
+                  <div
+                    key={item}
+                    className="bg-white rounded-lg p-4 border border-primary/10 shadow-sm"
+                  >
+                    {item}
+                  </div>
                 ))}
               </div>
             </div>
 
-            <div className="mt-8 text-center">
-              <p className="text-gray-600 mb-4">
-                Ideal para pequeñas y medianas empresas que quieren optimizar procesos sin contratar más personal.
+            {/* Capacidades específicas de voz */}
+            <div className="bg-white rounded-xl p-6 border border-primary/20 mb-12">
+              <h4 className="text-xl font-semibold text-gray-900 mb-4">
+                Capacidades avanzadas de los bots telefónicos
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
+                <ul className="space-y-2">
+                  <li>• Comprensión de lenguaje hablado natural</li>
+                  <li>• Manejo de interrupciones en llamadas</li>
+                  <li>• Flujo conversacional dinámico</li>
+                </ul>
+                <ul className="space-y-2">
+                  <li>• Registro automático de llamadas</li>
+                  <li>• Resumen y resultados de cada conversación</li>
+                  <li>• Escalado a agentes humanos en tiempo real</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* CTA */}
+            <div className="text-center">
+              <p className="text-gray-600 mb-6">
+                Diseñado para empresas que quieren escalar atención, ventas y
+                operaciones sin aumentar costos operativos.
               </p>
-              <Button className="bg-primary hover:bg-primary/90 text-white" size="lg">
-                Consultar implementación
+              <Button
+                size="lg"
+                className="bg-primary hover:bg-primary/90 text-white"
+              >
+                Solicitar demostración
               </Button>
             </div>
           </motion.div>
         </div>
       </div>
     </section>
-  )
-}
+  );
+};
 
-export default UseCasesSection
+export default UseCasesSection;

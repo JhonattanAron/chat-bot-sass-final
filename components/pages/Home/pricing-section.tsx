@@ -3,8 +3,21 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Lock, Zap, MessageCircle, Mail, Search } from "lucide-react";
+import {
+  Check,
+  Lock,
+  Zap,
+  MessageCircle,
+  Mail,
+  Search,
+  Globe,
+  MapPin,
+  Facebook,
+  Clock,
+  Phone,
+} from "lucide-react";
 import { useState } from "react";
+import PhoneBots from "./PhoneBots";
 
 const plans = [
   {
@@ -114,7 +127,7 @@ const plans = [
   },
 ];
 
-const services = [
+const campaigns = [
   {
     name: "WhatsApp Campaigns",
     icon: MessageCircle,
@@ -122,6 +135,7 @@ const services = [
       "Envíos masivos con QR, mensajes generados por IA y automatización.",
     free: "Disponible (manual)",
     paid: "Automatización + IA",
+    comingSoon: false,
   },
   {
     name: "Email Campaigns",
@@ -129,15 +143,76 @@ const services = [
     description: "Scraping, normalización y envío de emails a gran escala.",
     free: "Bloqueado",
     paid: "Consume Creditos",
+    comingSoon: false,
   },
   {
-    name: "Scraping de Leads",
-    icon: Search,
-    description: "Obtén leads desde Google Maps y sitios web automáticamente.",
+    name: "WhatsApp Business API",
+    icon: MessageCircle,
+    description:
+      "Integración oficial con API de WhatsApp Business para campañas profesionales.",
     free: "Bloqueado",
-    paid: "Consume Creditos",
+    paid: "Próximamente",
+    comingSoon: true,
+  },
+  {
+    name: "TikTok Ads",
+    icon: Zap,
+    description:
+      "Crea y automatiza campañas publicitarias en TikTok directamente.",
+    free: "Bloqueado",
+    paid: "Próximamente",
+    comingSoon: true,
+  },
+  {
+    name: "Meta Ads",
+    icon: Facebook,
+    description: "Gestiona campañas en Facebook e Instagram con IA.",
+    free: "Bloqueado",
+    paid: "Próximamente",
+    comingSoon: true,
   },
 ];
+
+const scrapers = [
+  {
+    name: "Google Sitios Web",
+    icon: Globe,
+    description:
+      "Extrae datos de sitios web automáticamente y enriquece leads.",
+    free: "Bloqueado",
+    paid: "Consume Creditos",
+    comingSoon: false,
+  },
+  {
+    name: "Google Maps Leads",
+    icon: MapPin,
+    description:
+      "Extrae leads directamente de Google Maps con información de contacto.",
+    free: "Bloqueado",
+    paid: "Consume Creditos",
+    comingSoon: false,
+  },
+];
+const phoneBots = [
+  {
+    name: "Bot Telefónico IA",
+    price: 280,
+    description:
+      "Asistente telefónico con inteligencia artificial para agendar citas, confirmar, reprogramar y atender llamadas 24/7.",
+    features: [
+      "Atiende llamadas entrantes 24/7",
+      "Agenda y reprograma citas automáticamente",
+      "Flujos conversacionales personalizados",
+      "Ideal para clínicas, consultorios y servicios",
+      "Demo incluida",
+    ],
+    popular: true,
+    cta: "Agregar plan",
+  },
+];
+
+const services = [...campaigns, ...scrapers];
+
 export function AnnualDiscountBadge({ isAnnual }: { isAnnual: boolean }) {
   return (
     <motion.div
@@ -172,7 +247,10 @@ export default function CampaignsPricing() {
         {/* HEADER */}
 
         <div className="text-center mb-14">
-          <h2 className="text-4xl font-bold mb-4">🚀 Campañas con IA</h2>
+          <h2 className="text-4xl font-bold mb-4">
+            🚀 Automatiza tu negocio con Inteligencia Artificial desde hoy
+          </h2>
+
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Automatiza WhatsApp, Email y adquisición de leads con inteligencia
             artificial.
@@ -320,78 +398,198 @@ export default function CampaignsPricing() {
             </motion.div>
           ))}
         </div>
+        {/* PHONE BOTS */}
+        <PhoneBots />
 
         {/* SERVICES */}
-        <div>
-          <h3 className="text-3xl font-bold text-center mb-10">
-            🧠 Servicios Pay-per-Use
-          </h3>
+        <div className="space-y-20">
+          {/* CAMPAIGNS SECTION */}
+          <div>
+            <div className="mb-12">
+              <h3 className="text-4xl font-bold mb-2">📧 Campañas</h3>
+              <p className="text-muted-foreground text-lg">
+                Automatiza campañas de marketing en múltiples canales con IA
+              </p>
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {services.map((s, i) => (
-              <motion.div
-                key={s.name}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                whileHover={{ y: -6 }}
-                transition={{ duration: 0.4, delay: i * 0.1 }}
-                viewport={{ once: true }}
-                className="group relative overflow-hidden rounded-2xl border 
-    bg-gradient-to-br from-background/80 to-muted/40 
-    backdrop-blur-xl p-6
-    hover:shadow-2xl hover:shadow-primary/10
-    transition-all"
-              >
-                {/* Glow overlay */}
-                <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent" />
-                </div>
-
-                {/* Icon */}
-                <div
-                  className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl 
-    bg-primary/10 text-primary
-    group-hover:scale-110 transition"
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              {campaigns.map((s, i) => (
+                <motion.div
+                  key={s.name}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  whileHover={{ y: -6 }}
+                  transition={{ duration: 0.4, delay: i * 0.08 }}
+                  viewport={{ once: true }}
+                  className={`group relative overflow-hidden rounded-2xl border 
+        transition-all h-full
+        ${
+          s.comingSoon
+            ? "bg-muted/50 border-muted-foreground/20"
+            : "bg-gradient-to-br from-background/80 to-muted/40 backdrop-blur-xl border-primary/20 hover:shadow-2xl hover:shadow-primary/10"
+        }`}
                 >
-                  <s.icon className="h-6 w-6" />
-                </div>
+                  {/* Glow overlay */}
+                  {!s.comingSoon && (
+                    <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition">
+                      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent" />
+                    </div>
+                  )}
 
-                {/* Title */}
-                <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                  {s.name}
-                </h4>
+                  <div className="p-5 flex flex-col h-full">
+                    {/* Icon */}
+                    <div
+                      className={`mb-4 inline-flex h-10 w-10 items-center justify-center rounded-lg
+        group-hover:scale-110 transition
+        ${
+          s.comingSoon
+            ? "bg-muted text-muted-foreground"
+            : "bg-primary/15 text-primary"
+        }`}
+                    >
+                      <s.icon className="h-5 w-5" />
+                    </div>
 
-                {/* Description */}
-                <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
-                  {s.description}
-                </p>
+                    {/* Title */}
+                    <h4 className="text-base font-semibold mb-1">{s.name}</h4>
 
-                {/* Availability */}
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2">
-                    <span className="flex items-center gap-2">
-                      🆓 <span className="font-medium">Free</span>
-                    </span>
-                    <span className="text-muted-foreground">{s.free}</span>
+                    {/* Description */}
+                    <p className="text-xs text-muted-foreground mb-4 leading-relaxed flex-grow">
+                      {s.description}
+                    </p>
+
+                    {/* Coming Soon Badge */}
+                    {s.comingSoon && (
+                      <div className="flex items-center gap-1 text-xs text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/30 px-2 py-1 rounded-full w-fit mb-3">
+                        <Clock className="h-3 w-3" />
+                        Próximamente
+                      </div>
+                    )}
+
+                    {/* Availability */}
+                    {!s.comingSoon && (
+                      <div className="space-y-1 text-xs">
+                        <div className="flex items-center justify-between rounded-lg bg-muted/50 px-2 py-1">
+                          <span className="font-medium">Free</span>
+                          <span className="text-muted-foreground text-[10px]">
+                            {s.free}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between rounded-lg bg-muted/50 px-2 py-1">
+                          <span className="font-medium">Pagado</span>
+                          <span className="text-muted-foreground text-[10px]">
+                            {s.paid}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {s.comingSoon && (
+                      <div className="absolute top-3 right-3 rounded-full bg-orange-100/80 dark:bg-orange-950/50 px-2 py-0.5 text-xs text-orange-700 dark:text-orange-300 flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                      </div>
+                    )}
                   </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
 
-                  <div className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2">
-                    <span className="flex items-center gap-2">
-                      💼 <span className="font-medium">Planes pagos</span>
-                    </span>
-                    <span className="text-muted-foreground">{s.paid}</span>
-                  </div>
-                </div>
+          {/* SCRAPERS SECTION */}
+          <div>
+            <div className="mb-12">
+              <h3 className="text-4xl font-bold mb-2">🔍 Scraping de Leads</h3>
+              <p className="text-muted-foreground text-lg">
+                Extrae y enriquece leads desde múltiples fuentes automáticamente
+              </p>
+            </div>
 
-                {/* Coming soon / lock hint */}
-                {s.free === "Bloqueado" && (
-                  <div className="absolute top-4 right-4 rounded-full bg-destructive/10 px-3 py-1 text-xs text-destructive flex items-center gap-1">
-                    <Lock className="h-3 w-3" />
-                    Bloqueado
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {scrapers.map((s, i) => (
+                <motion.div
+                  key={s.name}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  whileHover={{ y: -6 }}
+                  transition={{ duration: 0.4, delay: i * 0.1 }}
+                  viewport={{ once: true }}
+                  className={`group relative overflow-hidden rounded-2xl border 
+        transition-all h-full
+        ${
+          s.comingSoon
+            ? "bg-muted/50 border-muted-foreground/20"
+            : "bg-gradient-to-br from-background/80 to-muted/40 backdrop-blur-xl border-primary/20 hover:shadow-2xl hover:shadow-primary/10"
+        }`}
+                >
+                  {/* Glow overlay */}
+                  {!s.comingSoon && (
+                    <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition">
+                      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent" />
+                    </div>
+                  )}
+
+                  <div className="p-6 flex flex-col h-full">
+                    {/* Icon */}
+                    <div
+                      className={`mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl
+        group-hover:scale-110 transition
+        ${
+          s.comingSoon
+            ? "bg-muted text-muted-foreground"
+            : "bg-primary/15 text-primary"
+        }`}
+                    >
+                      <s.icon className="h-6 w-6" />
+                    </div>
+
+                    {/* Title */}
+                    <h4 className="text-lg font-semibold mb-2">{s.name}</h4>
+
+                    {/* Description */}
+                    <p className="text-sm text-muted-foreground mb-5 leading-relaxed flex-grow">
+                      {s.description}
+                    </p>
+
+                    {/* Coming Soon Badge */}
+                    {s.comingSoon && (
+                      <div className="flex items-center gap-1 text-xs text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/30 px-3 py-1.5 rounded-full w-fit mb-3">
+                        <Clock className="h-3 w-3" />
+                        Próximamente
+                      </div>
+                    )}
+
+                    {/* Availability */}
+                    {!s.comingSoon && (
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2">
+                          <span className="flex items-center gap-2">
+                            🆓 <span className="font-medium">Free</span>
+                          </span>
+                          <span className="text-muted-foreground text-xs">
+                            {s.free}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2">
+                          <span className="flex items-center gap-2">
+                            💼 <span className="font-medium">Planes pagos</span>
+                          </span>
+                          <span className="text-muted-foreground text-xs">
+                            {s.paid}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {s.comingSoon && (
+                      <div className="absolute top-4 right-4 rounded-full bg-orange-100/80 dark:bg-orange-950/50 px-3 py-1 text-xs text-orange-700 dark:text-orange-300 flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                      </div>
+                    )}
                   </div>
-                )}
-              </motion.div>
-            ))}
+                </motion.div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

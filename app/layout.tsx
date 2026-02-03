@@ -66,7 +66,7 @@ export const metadata = {
       "Create and manage AI-powered chatbots for WhatsApp, web, and business automation. Scale customer support and sales with Aurentric AI Labs.",
     images: [
       {
-        url: "/og/og-image.png",
+        url: "/logos/favicon.png",
         width: 1200,
         height: 630,
         alt: "Aurentric AI Labs - AI Chatbot Platform",
