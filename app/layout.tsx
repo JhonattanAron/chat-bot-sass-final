@@ -52,8 +52,19 @@ export const metadata = {
   },
 
   icons: {
-    icon: "/logos/favicon.ico",
-    apple: "/logos/favicon.png",
+    icon: [
+      {
+        url: "/logos/favicon.ico",
+        type: "image/x-icon",
+      },
+    ],
+    apple: [
+      {
+        url: "/logos/favicon.png",
+        sizes: "180x180",
+        type: "image/png",
+      },
+    ],
   },
 
   openGraph: {
