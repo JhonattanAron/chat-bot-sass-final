@@ -20,7 +20,7 @@ const scrapers = [
       "Obtén negocios locales, reviews y contactos desde Google Maps",
     icon: MapPin,
     active: true,
-    href: "/scraping/google-maps",
+    href: "scraping/google-maps",
   },
   {
     id: "meta",
