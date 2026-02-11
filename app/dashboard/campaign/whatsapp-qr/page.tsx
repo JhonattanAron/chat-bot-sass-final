@@ -182,6 +182,10 @@ export default function WhatsappDashboard() {
     };
   }, []);
 
+  function cleanPhoneNumber(phone: string): string {
+    return phone.startsWith("+") ? phone.slice(1) : phone;
+  }
+
   const handleCreateCampaign = async (payload: {
     name: string;
     message: string;
@@ -197,7 +201,7 @@ export default function WhatsappDashboard() {
         .filter((c) => c.phone) // solo contactos con teléfono
         .map((c) => ({
           name: c.name || undefined,
-          phone: c.phone,
+          phone: cleanPhoneNumber(c.phone),
         }));
 
       const res = await fetch("/api/backend/whastapp-qr/campaigns", {
