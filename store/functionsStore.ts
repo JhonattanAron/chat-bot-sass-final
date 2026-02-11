@@ -1,7 +1,6 @@
 import { create } from "zustand";
 
 export interface AssistantFunction {
-  [x: string]: string | undefined;
   id?: string;
   name: string;
   description?: string;
@@ -32,18 +31,18 @@ interface FunctionsStore {
   addFunction: (
     user_id: string,
     assistant_id: string,
-    func: AssistantFunction
+    func: AssistantFunction,
   ) => Promise<any>;
   updateFunction: (
     user_id: string,
     assistant_id: string,
     functionId: string,
-    func: Partial<AssistantFunction>
+    func: Partial<AssistantFunction>,
   ) => Promise<any>;
   deleteFunction: (
     user_id: string,
     assistant_id: string,
-    functionId: string
+    functionId: string,
   ) => Promise<any>;
   setFunctions: (functions: AssistantFunction[]) => void;
   setError: (error: string | null) => void;
@@ -61,9 +60,9 @@ export const useFunctionsStore = create<FunctionsStore>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const res = await fetch(
-        `/api/functions-tasks?user_id=${encodeURIComponent(
-          user_id
-        )}&assistant_id=${encodeURIComponent(assistant_id)}`
+        `/api/backend/functions?user_id=${encodeURIComponent(
+          user_id,
+        )}&assistant_id=${encodeURIComponent(assistant_id)}`,
       );
       const data = await res.json();
       if (!res.ok || !data.success)
@@ -77,7 +76,7 @@ export const useFunctionsStore = create<FunctionsStore>((set, get) => ({
   addFunction: async (user_id, assistant_id, func) => {
     set({ loading: true, error: null });
     try {
-      const res = await fetch("/api/functions-tasks", {
+      const res = await fetch("/api/backend/functions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_id, assistant_id, function: func }),
@@ -85,7 +84,6 @@ export const useFunctionsStore = create<FunctionsStore>((set, get) => ({
       const data = await res.json();
       if (!res.ok || !data.success)
         throw new Error(data.error || "Error adding function");
-      // Opcional: refresca funciones
       await get().fetchFunctions(user_id, assistant_id);
       set({ loading: false });
       return data;
@@ -98,7 +96,7 @@ export const useFunctionsStore = create<FunctionsStore>((set, get) => ({
   updateFunction: async (user_id, assistant_id, functionId, func) => {
     set({ loading: true, error: null });
     try {
-      const res = await fetch(`/api/functions-tasks/${functionId}`, {
+      const res = await fetch(`/api/backend/functions/${functionId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_id, assistant_id, function: func }),
@@ -118,8 +116,8 @@ export const useFunctionsStore = create<FunctionsStore>((set, get) => ({
   deleteFunction: async (user_id, assistant_id, functionId) => {
     set({ loading: true, error: null });
     try {
-      const url = `/api/functions-tasks/${functionId}?user_id=${encodeURIComponent(
-        user_id
+      const url = `/api/backend/functions/${functionId}?user_id=${encodeURIComponent(
+        user_id,
       )}&assistant_id=${encodeURIComponent(assistant_id)}`;
       const res = await fetch(url, { method: "DELETE" });
       const data = await res.json();

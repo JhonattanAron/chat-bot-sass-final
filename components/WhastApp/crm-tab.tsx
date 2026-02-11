@@ -23,10 +23,7 @@ export function CRMTab({ contacts, onContactsChange }: CRMTabProps) {
           <CardTitle>Contactos</CardTitle>
         </CardHeader>
         <CardContent>
-          <CRMContactsManager
-            contacts={contacts}
-            onContactsChange={onContactsChange}
-          />
+          <CRMContactsManager />
         </CardContent>
       </Card>
     </div>

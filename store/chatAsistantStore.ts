@@ -20,7 +20,7 @@ export interface ChatAssistant {
   name: string;
   description: string;
   funciones?: [];
-  integrations?: Integration[]; // <-- Nuevo campo
+  integrations?: Integration[];
   type: string;
   status: string;
   use_case: string;
@@ -34,7 +34,10 @@ interface ChatAssistantStore {
   loading: boolean;
   error: string | null;
   createAssistant: (assistant: ChatAssistant) => Promise<APIResponse>;
-  updateAssistant: (assistant: ChatAssistant) => Promise<void>;
+  updateAssistant: (
+    id: string,
+    assistant: Partial<ChatAssistant>,
+  ) => Promise<void>;
   createFaq: (faqData: {
     user_id: string;
     assistant_id: string;
@@ -53,10 +56,10 @@ interface ChatAssistantStore {
   }) => Promise<void>;
   getAssistants: (user_id: string) => Promise<ChatAssistant[]>;
   getAssistantById: (
-    chat_id: string,
-    user_id: string
+    assistant_id: string,
+    user_id: string,
   ) => Promise<ChatAssistant | undefined>;
-  deleteAssistant: (id: string) => Promise<void>;
+  deleteAssistant: (assistant_id: string, user_id: string) => Promise<void>;
   setAssistants: (assistants: ChatAssistant[]) => void;
   setError: (error: string | null) => void;
 }
@@ -72,7 +75,7 @@ export const useChatAssistantStore = create<ChatAssistantStore>((set, get) => ({
   createFaq: async (faqData) => {
     set({ loading: true, error: null });
     try {
-      const res = await fetch("/api/faq-tasks", {
+      const res = await fetch("/api/backend/faq-tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(faqData),
@@ -90,7 +93,7 @@ export const useChatAssistantStore = create<ChatAssistantStore>((set, get) => ({
   updateFaq: async (faqUpdate) => {
     set({ loading: true, error: null });
     try {
-      const res = await fetch("/api/faq-tasks", {
+      const res = await fetch("/api/backend/faq-tasks", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(faqUpdate),
@@ -109,9 +112,9 @@ export const useChatAssistantStore = create<ChatAssistantStore>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const query = new URLSearchParams(
-        params as Record<string, string>
+        params as Record<string, string>,
       ).toString();
-      const res = await fetch(`/api/faq-tasks?${query}`, {
+      const res = await fetch(`/api/backend/faq-tasks?${query}`, {
         method: "DELETE",
       });
       const data = await res.json();
@@ -127,37 +130,46 @@ export const useChatAssistantStore = create<ChatAssistantStore>((set, get) => ({
   getAssistants: async (user_id) => {
     set({ loading: true, error: null });
     try {
-      const res = await fetch(`/api/asistant-tasks?user_id=${user_id}`);
+      const res = await fetch(
+        `/api/backend/assistant-chats?user_id=${user_id}`,
+        {
+          credentials: "include",
+        },
+      );
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Error fetching assistants");
-      set({ assistants: data, loading: false });
-      return data;
+      console.log(data);
+
+      if (!res.ok || !data.success)
+        throw new Error(data.error || "Error fetching assistants");
+      set({ assistants: data.assistants || [], loading: false });
+      return data.assistants || [];
     } catch (err: any) {
       set({ error: err.message, loading: false });
       return [];
     }
   },
 
-  getAssistantById: async (chat_id, user_id) => {
+  getAssistantById: async (assistant_id, user_id) => {
     set({ loading: true, error: null });
     try {
       const res = await fetch(
-        `/api/asistant-get?chat_id=${chat_id}&user_id=${user_id}`
+        `/api/backend/assistant-chats/${assistant_id}?user_id=${user_id}`,
       );
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Error fetching assistants");
-      set({ assistant: data, loading: false });
-      return data;
+      if (!res.ok || !data.success)
+        throw new Error(data.error || "Error fetching assistant");
+      set({ assistant: data.assistant, loading: false });
+      return data.assistant;
     } catch (err: any) {
       set({ error: err.message, loading: false });
-      return [];
+      return undefined;
     }
   },
 
   createAssistant: async (assistant) => {
     set({ loading: true, error: null });
     try {
-      const res = await fetch("/api/asistant-tasks", {
+      const res = await fetch("/api/backend/assistant-chats", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -165,7 +177,7 @@ export const useChatAssistantStore = create<ChatAssistantStore>((set, get) => ({
           name: assistant.name,
           description: assistant.description,
           funciones: assistant.funciones,
-          integrations: assistant.integrations, // <-- Se envía
+          integrations: assistant.integrations,
           type: assistant.type,
           status: assistant.status,
           use_case: assistant.use_case,
@@ -173,11 +185,11 @@ export const useChatAssistantStore = create<ChatAssistantStore>((set, get) => ({
         }),
       });
       const data = await res.json();
-      if (!res.ok) {
+      if (!res.ok || !data.success) {
         return { data, error: true, local: assistant };
       } else {
         set((state) => ({
-          assistants: [...state.assistants, data],
+          assistants: [...state.assistants, data.assistant],
           loading: false,
         }));
         return { data, error: false };
@@ -188,19 +200,20 @@ export const useChatAssistantStore = create<ChatAssistantStore>((set, get) => ({
     }
   },
 
-  updateAssistant: async (assistant) => {
+  updateAssistant: async (assistant_id, updates) => {
     set({ loading: true, error: null });
     try {
-      const res = await fetch("/api/asistant-tasks", {
-        method: "PATCH",
+      const res = await fetch(`/api/backend/assistant-chats/${assistant_id}`, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(assistant), // Incluye integrations también
+        body: JSON.stringify(updates),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Error updating assistant");
+      if (!res.ok || !data.success)
+        throw new Error(data.error || "Error updating assistant");
       set((state) => ({
         assistants: state.assistants.map((a) =>
-          a._id === assistant._id ? { ...a, ...assistant } : a
+          a._id === assistant_id ? { ...a, ...updates } : a,
         ),
         loading: false,
       }));
@@ -209,18 +222,20 @@ export const useChatAssistantStore = create<ChatAssistantStore>((set, get) => ({
     }
   },
 
-  deleteAssistant: async (id) => {
+  deleteAssistant: async (assistant_id, user_id) => {
     set({ loading: true, error: null });
     try {
-      const res = await fetch("/api/asistant-tasks", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
-      });
+      const res = await fetch(
+        `/api/backend/assistant-chats/${assistant_id}?user_id=${user_id}`,
+        {
+          method: "DELETE",
+        },
+      );
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Error deleting assistant");
+      if (!res.ok || !data.success)
+        throw new Error(data.error || "Error deleting assistant");
       set((state) => ({
-        assistants: state.assistants.filter((a) => a._id !== id),
+        assistants: state.assistants.filter((a) => a._id !== assistant_id),
         loading: false,
       }));
     } catch (err: any) {

@@ -132,10 +132,10 @@ export function CreateCampaignModal({
 
             {/* Mensaje */}
             <div className="space-y-2">
-              <Label htmlFor="campaign-message">Mensaje a enviar</Label>
+              <Label htmlFor="campaign-message">Contexto para el Modelo</Label>
               <Textarea
                 id="campaign-message"
-                placeholder="Escribe el mensaje que se enviará por WhatsApp..."
+                placeholder="Aqui agrega el contexto de la campaña u objetivo..."
                 rows={5}
                 value={campaignMessage}
                 onChange={(e) => setCampaignMessage(e.target.value)}
@@ -177,7 +177,10 @@ export function CreateCampaignModal({
                 disabled={loading}
                 className="w-4 h-4 cursor-pointer"
               />
-              <label htmlFor="auto-ai" className="text-sm cursor-pointer flex-1">
+              <label
+                htmlFor="auto-ai"
+                className="text-sm cursor-pointer flex-1"
+              >
                 Responder automáticamente con IA ({aiModel})
               </label>
             </div>

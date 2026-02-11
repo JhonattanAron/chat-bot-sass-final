@@ -136,7 +136,7 @@ export function FunctionModal({
           setParameters(
             editFunction.api.parameters || [
               { name: "", type: "string", required: true, description: "" },
-            ]
+            ],
           );
           setRequiresAuth(!!editFunction.api.auth);
           setAuthType(editFunction.api.auth?.type || "bearer");
@@ -148,7 +148,7 @@ export function FunctionModal({
           setCustomCredentials(
             editFunction.credentials || [
               { name: "", value: "", description: "" },
-            ]
+            ],
           );
           // Reset verification state when loading an existing function for editing
           setVerificationResult(null);
@@ -258,7 +258,7 @@ export function FunctionModal({
   const updateHeader = (
     index: number,
     field: "key" | "value",
-    value: string
+    value: string,
   ) => {
     const updatedHeaders = [...headers];
     updatedHeaders[index][field] = value;
@@ -295,7 +295,7 @@ export function FunctionModal({
   const updateCustomCredential = (
     index: number,
     field: "name" | "value" | "description",
-    value: string
+    value: string,
   ) => {
     const updatedCredentials = [...customCredentials];
     updatedCredentials[index][field] = value;
@@ -318,8 +318,8 @@ export function FunctionModal({
                 ? "Edit Custom Function"
                 : "Editar Función Personalizada"
               : language === "en"
-              ? "Add Custom Function"
-              : "Agregar Función Personalizada"}
+                ? "Add Custom Function"
+                : "Agregar Función Personalizada"}
           </DialogTitle>
           <DialogDescription>
             {editFunction
@@ -327,8 +327,8 @@ export function FunctionModal({
                 ? "Modify the details of your custom function"
                 : "Modifica los detalles de tu función personalizada"
               : language === "en"
-              ? "Create a custom function that your bot can execute"
-              : "Crea una función personalizada que tu bot puede ejecutar"}
+                ? "Create a custom function that your bot can execute"
+                : "Crea una función personalizada que tu bot puede ejecutar"}
           </DialogDescription>
         </DialogHeader>
         <div className="flex-1 overflow-y-auto p-3">
@@ -391,7 +391,7 @@ export function FunctionModal({
                 className="min-h-[80px]"
               />
             </div>
-            <Tabs value={functionType} onValueChange={setFunctionType}>
+            <Tabs value={functionType} onVolumeChange={setFunctionType}>
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="api">API Call</TabsTrigger>
                 <TabsTrigger value="custom">
@@ -666,7 +666,7 @@ export function FunctionModal({
                                 updateCustomCredential(
                                   index,
                                   "name",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                             />
@@ -686,7 +686,7 @@ export function FunctionModal({
                                 updateCustomCredential(
                                   index,
                                   "value",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                               className="pr-10"
@@ -717,7 +717,7 @@ export function FunctionModal({
                                 updateCustomCredential(
                                   index,
                                   "description",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                             />
@@ -749,7 +749,7 @@ export function FunctionModal({
                           {customCredentials
                             .filter((c) => c.name)
                             .map(
-                              (c) => `const ${c.name} = credentials.${c.name};`
+                              (c) => `const ${c.name} = credentials.${c.name};`,
                             )
                             .join("\n") ||
                             (language === "en"
@@ -801,8 +801,8 @@ export function FunctionModal({
                                 ? "Verifying..."
                                 : "Verificando..."
                               : language === "en"
-                              ? "Verify Function"
-                              : "Verificar Función"}
+                                ? "Verify Function"
+                                : "Verificar Función"}
                           </Button>
                         </div>
                         <Textarea
@@ -851,8 +851,8 @@ function executeFunction(params, credentials) {
                             verificationResult.status === "success"
                               ? "border-green-200 bg-green-50"
                               : verificationResult.status === "warning"
-                              ? "border-yellow-200 bg-yellow-50"
-                              : "border-red-200 bg-red-50"
+                                ? "border-yellow-200 bg-yellow-50"
+                                : "border-red-200 bg-red-50"
                           }`}
                         >
                           <div className="flex items-center gap-2">
@@ -870,8 +870,8 @@ function executeFunction(params, credentials) {
                                 verificationResult.status === "success"
                                   ? "text-green-800"
                                   : verificationResult.status === "warning"
-                                  ? "text-yellow-800"
-                                  : "text-red-800"
+                                    ? "text-yellow-800"
+                                    : "text-red-800"
                               }`}
                             >
                               {verificationResult.message}
@@ -934,8 +934,8 @@ function executeFunction(params, credentials) {
                 ? "Save Changes"
                 : "Guardar Cambios"
               : language === "en"
-              ? "Add Function"
-              : "Agregar Función"}
+                ? "Add Function"
+                : "Agregar Función"}
           </Button>
         </div>
         {/* Verification Alert Dialog */}

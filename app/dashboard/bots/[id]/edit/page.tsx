@@ -123,8 +123,8 @@ export default function EditBotPage({
   const { fetchProducts, products, updateProduct } = useProductStore();
   const [temporalMessage, setTemporalMessage] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [selectedChatId, setSelectedChatId] = useState("1");
-  const [chatTiitle, setChatTitle] = useState(
+  const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
+  const [chatTitle, setChatTitle] = useState(
     "Selecciona un Chat o Inicia uno nuevo",
   );
   const {
@@ -172,9 +172,26 @@ export default function EditBotPage({
     );
   }, [products]);
 
+  // Sincronizar selectedChatId con currentChat
   useEffect(() => {
-    setEditingFaqs(assistant?.faqs || []);
-  }, [assistant]);
+    if (currentChat?.id) {
+      setSelectedChatId(currentChat.id);
+      setChatTitle(`Chat - ${new Date(currentChat.lastActivity).toLocaleString()}`);
+    }
+  }, [currentChat]);
+
+  // Actualizar selectedChatId cuando el usuario selecciona un chat desde la UI
+  const handleSelectChat = (chatId: string) => {
+    setSelectedChatId(chatId);
+    void fetchChat(chatId);
+  };
+
+  // Iniciar un nuevo chat
+  const handleNewChat = () => {
+    setSelectedChatId(null);
+    setTemporalMessage("");
+    setChatTitle("Selecciona un Chat o Inicia uno nuevo");
+  };
 
   type TestMessage = {
     id: string;
@@ -213,7 +230,7 @@ export default function EditBotPage({
         await getAssistantById(id, session.binding_id);
         await fetchProducts(session.binding_id, id);
         await fetchFunctions(session.binding_id, id);
-        await fetchUserChats(session.binding_id);
+        await fetchUserChats();
         console.log(assistant);
         setErrorBot(false);
       }
@@ -326,52 +343,71 @@ export default function EditBotPage({
     }
   };
 
-  // ✅ SOLUCIÓN: Función corregida para manejar el mensaje temporal
+  // Mejorada: Función para enviar mensaje con lógica correcta
   const handleSendTestMessage = async () => {
-    if (!testInput.trim()) return;
-    // 🔥 CLAVE: Guardar el mensaje ANTES de limpiar el input
     const messageToSend = testInput.trim();
-    setTemporalMessage(messageToSend); // Mostrar inmediatamente
-    setTestInput(""); // Limpiar el input
-    if (!session?.binding_id || !assistant?._id) {
+    if (!messageToSend) return;
+
+    // Validar datos básicos
+    if (!session?.binding_id) {
       toast({
         title: "Error",
-        description: "Intenta Cerrar sesión y volver a ingresar.",
+        description: "Por favor, inicia sesión para continuar.",
       });
       return;
     }
+
+    if (!assistant?._id) {
+      toast({
+        title: "Error",
+        description: "No se pudo cargar el asistente.",
+      });
+      return;
+    }
+
     try {
-      // Si es un nuevo chat, créalo
-      if (selectedChatId === "1") {
-        const data = await startChat({
-          userId: session?.binding_id,
-          assistant_id: assistant?._id,
-          promt: messageToSend, // Usar el mensaje guardado
+      setTestInput(""); // Limpiar input inmediatamente
+
+      // Si no hay chat seleccionado, crear uno nuevo
+      if (!selectedChatId) {
+        console.log("[v0] Creating new chat with message:", messageToSend);
+        const response = await startChat({
+          userId: session.binding_id,
+          assistant_id: assistant._id,
+          promt: messageToSend,
         });
-        const response = data as unknown as { chat_id: string };
-        const chatId = response.chat_id;
+
+        // Extraer chatId de la respuesta
+        const chatId = (response as any)?.chat_id || (response as any)?.id;
+        if (!chatId) {
+          throw new Error("No chat ID returned from server");
+        }
+
+        console.log("[v0] New chat created with ID:", chatId);
         setSelectedChatId(chatId);
         await fetchChat(chatId);
         await fetchUserChats(session.binding_id);
       } else {
+        // El chat ya existe, enviar mensaje
+        console.log("[v0] Sending message to existing chat:", selectedChatId);
         await sendMessage({
           chatId: selectedChatId,
-          assistant_id: assistant?._id,
+          assistant_id: assistant._id,
           role: "user",
-          content: messageToSend, // Usar el mensaje guardado
+          content: messageToSend,
         });
+
+        // Refrescar el chat para obtener la respuesta
+        await fetchChat(selectedChatId);
       }
-    } catch (error) {
-      console.error("Error sending message:", error);
+    } catch (error: any) {
+      console.error("[v0] Error sending message:", error);
       toast({
         title: "Error",
-        description: "Error al enviar el mensaje",
+        description: error?.message || "Error al enviar el mensaje",
       });
-    } finally {
-      // Limpiar el mensaje temporal después de que se procese
-      setTimeout(() => {
-        setTemporalMessage("");
-      }, 1000);
+      // Restaurar el input si hubo error
+      setTestInput(messageToSend);
     }
   };
 
@@ -1244,7 +1280,7 @@ export default function EditBotPage({
                             <Accordion type="multiple" className="space-y-4">
                               {functions.map((func, index) => (
                                 <AccordionItem
-                                  key={func._id || index} // Usar _id si está disponible, sino index
+                                  key={func.id || index} // Usar _id si está disponible, sino index
                                   value={`function-${index}`}
                                   className="border rounded-md p-2"
                                 >
@@ -1289,7 +1325,7 @@ export default function EditBotPage({
                                         size="icon"
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          handleRemoveFunction(func._id); // Usar _id para eliminar
+                                          handleRemoveFunction(func.id); // Usar id para eliminar
                                         }}
                                         className="h-8 w-8 text-muted-foreground hover:text-destructive flex-shrink-0"
                                         type="button"
@@ -1470,11 +1506,7 @@ export default function EditBotPage({
                         </Button>
                       </div>
                       <Button
-                        onClick={async () => {
-                          setSelectedChatId("1");
-                          setTemporalMessage("");
-                          fetchChat("1");
-                        }}
+                        onClick={handleNewChat}
                         size="sm"
                         className="w-full bg-transparent"
                         variant="outline"
@@ -1484,31 +1516,35 @@ export default function EditBotPage({
                       </Button>
                     </div>
                     <div className="overflow-y-auto h-[calc(100%-80px)]">
-                      {chats.map((chat, index) => {
-                        return (
-                          <button
-                            key={chat.id}
-                            onClick={() => {
-                              fetchChat(chat.id);
-                            }}
-                            className={cn(
-                              "w-full text-left px-4 py-3 transition-colors border-b",
-                              selectedChatId === chat.id
-                                ? "bg-slate-100 font-semibold"
-                                : "bg-white hover:bg-slate-100",
-                            )}
-                          >
-                            <div className="flex flex-col w-full">
-                              <p className="text-sm text-gray-900 truncate">
-                                🗨️ Chat {index + 1}
-                              </p>
-                              <span className="text-xs text-gray-500 truncate">
-                                {chat.lastActivity || "No recent activity"}
-                              </span>
-                            </div>
-                          </button>
-                        );
-                      })}
+                      {chats && Array.isArray(chats) ? (
+                        chats.map((chat, index) => {
+                          return (
+                            <button
+                              key={chat.id}
+                              onClick={() => handleSelectChat(chat.id)}
+                              className={cn(
+                                "w-full text-left px-4 py-3 transition-colors border-b",
+                                selectedChatId === chat.id
+                                  ? "bg-slate-100 font-semibold"
+                                  : "bg-white hover:bg-slate-100",
+                              )}
+                            >
+                              <div className="flex flex-col w-full">
+                                <p className="text-sm text-gray-900 truncate">
+                                  🗨️ Chat {index + 1}
+                                </p>
+                                <span className="text-xs text-gray-500 truncate">
+                                  {chat.lastActivity || "No recent activity"}
+                                </span>
+                              </div>
+                            </button>
+                          );
+                        })
+                      ) : (
+                        <div className="p-4 text-center text-muted-foreground text-sm">
+                          No chats available
+                        </div>
+                      )}
                     </div>
                   </div>
                   {/* Main Chat Area */}
@@ -1549,7 +1585,7 @@ export default function EditBotPage({
                         )}
                         <div>
                           <h3 className="font-medium text-white">
-                            {chatTiitle}
+                            {chatTitle}
                           </h3>
                           <p className="text-sm text-gray-200">
                             {(bot && bot.chatSettings?.subtitle) ||

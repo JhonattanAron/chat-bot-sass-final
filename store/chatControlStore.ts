@@ -25,7 +25,6 @@ type ChatStore = {
   loading: boolean;
   error: string | null;
   startChat: (payload: {
-    userId: string;
     assistant_id: string;
     promt: string;
   }) => Promise<void>;
@@ -36,7 +35,7 @@ type ChatStore = {
     content: string;
   }) => Promise<void>;
   fetchChat: (chatId: string) => Promise<void>;
-  fetchUserChats: (userId: string) => Promise<void>;
+  fetchUserChats: () => Promise<void>;
   clearError: () => void;
 };
 
@@ -47,13 +46,14 @@ export const useChatStore = create<ChatStore>()(
     loading: false,
     error: null,
 
-    startChat: async ({ userId, assistant_id, promt }) => {
+    startChat: async ({ assistant_id, promt }) => {
       set({ loading: true, error: null });
       try {
-        const res = await fetch("/api/chat/start", {
+        const res = await fetch("/api/backend/chat/start", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId, assistant_id, promt }),
+          body: JSON.stringify({ assistant_id, prompt: promt }),
+          credentials: "include",
         });
         const data = await res.json();
 
@@ -97,7 +97,7 @@ export const useChatStore = create<ChatStore>()(
     fetchChat: async (chatId) => {
       set({ loading: true, error: null });
       try {
-        const res = await fetch(`/api/chat/${chatId}`);
+        const res = await fetch(`/api/backend/chat/${chatId}`);
         const data = await res.json();
 
         if (!res.ok) throw new Error(data.error || "Failed to fetch chat");
@@ -108,10 +108,12 @@ export const useChatStore = create<ChatStore>()(
       }
     },
 
-    fetchUserChats: async (userId) => {
+    fetchUserChats: async () => {
       set({ loading: true, error: null });
       try {
-        const res = await fetch(`/api/chat/user/${userId}`);
+        const res = await fetch(`/api/backend/chat/get/user`, {
+          credentials: "include",
+        });
         const data = await res.json();
 
         if (!res.ok) throw new Error(data.error || "Failed to fetch chats");
@@ -123,5 +125,5 @@ export const useChatStore = create<ChatStore>()(
     },
 
     clearError: () => set({ error: null }),
-  }))
+  })),
 );

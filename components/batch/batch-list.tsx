@@ -30,7 +30,9 @@ export function BatchList() {
   useEffect(() => {
     const fetchBatches = async () => {
       try {
-        const res = await fetch("/api/backend/batches?user_id=1"); // ajusta el user real
+        const res = await fetch("/api/backend/batches?user_id=1", {
+          credentials: "include",
+        }); // ajusta el user real
         const data = await res.json();
 
         if (!res.ok) throw new Error(data.error || "Failed to fetch batches");

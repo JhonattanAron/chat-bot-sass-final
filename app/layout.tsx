@@ -104,11 +104,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
-        <Providers>
-          {children}
-          <Toaster />
-        </Providers>
+      <body className={inter.className} suppressHydrationWarning>
+        <Providers>{children}</Providers>
+        <Toaster />
         <div id="payphone-root"></div>
       </body>
     </html>

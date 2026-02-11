@@ -1,270 +1,268 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { MapPin, Play, Download, Trash2, Loader2 } from "lucide-react";
-import { toast } from "sonner";
+  AlertCircle,
+  Loader2,
+  CheckCircle2,
+  Clock,
+  MapPin,
+  Download,
+} from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 
 interface Batch {
-  id: string;
-  name: string;
-  latitude: number;
-  longitude: number;
+  _id: string;
+  query: string;
+  location: { lat: number; lng: number };
   radius: number;
-  status: "pending" | "running" | "completed" | "failed";
+  status: "pending" | "running" | "done";
+  total_places: number;
   createdAt: string;
-  resultsCount: number;
+  isDeepSearch?: boolean;
+  previousBatchId?: string;
 }
 
-interface BatchListProps {
-  refreshTrigger?: number;
-}
-
-export function GoogleMapsBatchList({ refreshTrigger }: BatchListProps) {
+export function GoogleMapsBatchList() {
   const [batches, setBatches] = useState<Batch[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [executingId, setExecutingId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [extracting, setExtracting] = useState<string | null>(null);
   const { data: session } = useSession();
 
   useEffect(() => {
     fetchBatches();
-  }, [refreshTrigger]);
+  }, []);
 
   const fetchBatches = async () => {
-    setIsLoading(true);
+    setLoading(true);
     try {
       const response = await fetch(
         `/api/backend/google-maps-leads/${session?.binding_id}/list`,
       );
-      if (!response.ok) throw new Error("Failed to fetch batches");
-
-      const data = await response.json();
-
-      const normalized: Batch[] = data.map((item: any) => ({
-        id: item._id,
-        name: item.query,
-        latitude: item.location.lat,
-        longitude: item.location.lng,
-        radius: item.radius,
-        status: item.status,
-        createdAt: item.createdAt,
-        resultsCount: item.total_places ?? 0,
-      }));
-
-      setBatches(normalized);
-    } catch (error) {
-      console.error("[v0] Error fetching batches:", error);
-      toast.error("Failed to load batches");
+      if (response.ok) {
+        const data = await response.json();
+        setBatches(data);
+      }
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const handleExecute = async (batchId: string) => {
-    setExecutingId(batchId);
+  const handleExtract = async (batchId: string) => {
+    setExtracting(batchId);
     try {
       const response = await fetch(
         `/api/backend/google-maps-leads/${batchId}/extract`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ batchId }),
         },
       );
 
-      if (!response.ok) throw new Error("Failed to execute batch");
-      toast.success("Batch execution started!");
-      fetchBatches();
-    } catch (error) {
-      console.error("[v0] Error executing batch:", error);
-      toast.error("Failed to execute batch");
+      if (response.ok) {
+        await fetchBatches();
+        alert("Extraction completed!");
+      } else {
+        alert("Extraction failed");
+      }
     } finally {
-      setExecutingId(null);
+      setExtracting(null);
     }
   };
 
-  const handleExport = async (batchId: string) => {
+  const handleEnrich = async (batchId: string) => {
+    setExtracting(batchId);
     try {
-      const response = await fetch(
-        `/api/backend/batches/export?batchId=${batchId}`,
-      );
-      if (!response.ok) throw new Error("Failed to export");
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `batch-${batchId}.csv`;
-      a.click();
-      window.URL.revokeObjectURL(url);
-      toast.success("Data exported successfully!");
-    } catch (error) {
-      console.error("[v0] Error exporting batch:", error);
-      toast.error("Failed to export data");
-    }
-  };
-
-  const handleDelete = async (batchId: string) => {
-    if (!confirm("Are you sure you want to delete this batch?")) return;
-
-    try {
-      const response = await fetch("/api/backend/batches/delete", {
+      const response = await fetch(`/api/google-maps-leads/${batchId}/enrich`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ batchId }),
       });
 
-      if (!response.ok) throw new Error("Failed to delete batch");
-      toast.success("Batch deleted successfully!");
-      fetchBatches();
-    } catch (error) {
-      console.error("Error deleting batch:", error);
-      toast.error("Failed to delete batch");
+      if (response.ok) {
+        await fetchBatches();
+        alert("Enrichment completed!");
+      } else {
+        alert("Enrichment failed");
+      }
+    } finally {
+      setExtracting(null);
     }
   };
 
-  const getStatusBadgeColor = (status: string) => {
+  const handleExportCSV = async (batchId: string) => {
+    try {
+      const response = await fetch(
+        `/api/backend/google-maps-leads/${batchId}/export/csv`,
+      );
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `batch-${batchId}.csv`;
+        a.click();
+      }
+    } catch (error) {
+      console.error("Export failed:", error);
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
     switch (status) {
       case "pending":
-        return "outline";
+        return <Clock className="w-4 h-4 text-yellow-500" />;
       case "running":
-        return "secondary";
-      case "completed":
-        return "default";
-      case "failed":
-        return "destructive";
+        return <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />;
+      case "done":
+        return <CheckCircle2 className="w-4 h-4 text-green-500" />;
       default:
-        return "outline";
+        return null;
     }
   };
 
-  if (isLoading) {
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "pending":
+        return (
+          <Badge variant="outline" className="bg-yellow-50">
+            Pending
+          </Badge>
+        );
+      case "running":
+        return <Badge className="bg-blue-600">Running</Badge>;
+      case "done":
+        return <Badge className="bg-green-600">Done</Badge>;
+      default:
+        return null;
+    }
+  };
+
+  if (loading) {
     return (
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex justify-center py-8">
-            <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
-          </div>
-        </CardContent>
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+  if (batches.length === 0) {
+    return (
+      <Card className="p-8 text-center">
+        <AlertCircle className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+        <p className="text-gray-600">
+          No batches yet. Create one to get started!
+        </p>
       </Card>
     );
   }
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <MapPin className="w-5 h-5" />
-          Your Batches
-        </CardTitle>
-        <CardDescription>
-          Manage and execute your scraping batches
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {batches.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <p>No batches yet. Create your first batch to get started!</p>
+    <div className="space-y-4">
+      {batches.map((batch) => (
+        <Card
+          key={batch._id}
+          className="p-6 bg-white shadow-lg hover:shadow-xl transition-shadow"
+        >
+          {/* Deep Search Alert */}
+          {batch.isDeepSearch && (
+            <Alert className="mb-4 border-blue-200 bg-blue-50">
+              <AlertCircle className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-800">
+                <span className="font-semibold">Deep Search Mode</span>
+                <p className="text-sm mt-1">
+                  This zone was previously scraped. Searching for additional
+                  businesses...
+                </p>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-2">
+                <Link href={`google-maps/leads/${batch._id}`}>
+                  <h3 className="text-lg font-bold text-gray-900">
+                    {batch.query}
+                  </h3>
+                </Link>
+                {getStatusBadge(batch.status)}
+              </div>
+
+              <div className="space-y-1 text-sm text-gray-600">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4" />
+                  <span>
+                    {batch.location.lat.toFixed(4)},{" "}
+                    {batch.location.lng.toFixed(4)} • {batch.radius}m radius
+                  </span>
+                </div>
+                <p>
+                  Found leads:{" "}
+                  <span className="font-semibold text-gray-900">
+                    {batch.total_places}
+                  </span>
+                </p>
+                <p className="text-xs text-gray-500">
+                  Created: {new Date(batch.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+            </div>
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Radius</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Results</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {batches.map((batch) => (
-                  <TableRow key={batch.id}>
-                    <TableCell className="font-medium">
-                      <Link href={`google-maps/leads/${batch.id}`}>
-                        {batch.name}
-                      </Link>
-                    </TableCell>
-                    <TableCell className="text-sm text-gray-600">
-                      {batch.latitude.toFixed(4)}, {batch.longitude.toFixed(4)}
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {(batch.radius / 1000).toFixed(1)} km
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={getStatusBadgeColor(batch.status)}>
-                        {batch.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {batch.resultsCount || "-"}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleExecute(batch.id)}
-                          disabled={
-                            executingId === batch.id ||
-                            batch.status === "running"
-                          }
-                          title="Execute batch"
-                        >
-                          {executingId === batch.id ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Play className="w-4 h-4" />
-                          )}
-                        </Button>
-                        {batch.status === "completed" && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleExport(batch.id)}
-                            title="Export as CSV"
-                          >
-                            <Download className="w-4 h-4" />
-                          </Button>
-                        )}
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleDelete(batch.id)}
-                          className="text-red-600 hover:text-red-700"
-                          title="Delete batch"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+
+          {/* Actions */}
+          <div className="flex gap-2 mt-4 flex-wrap">
+            {batch.status === "pending" && (
+              <Button
+                onClick={() => handleExtract(batch._id)}
+                disabled={extracting === batch._id}
+                className="bg-blue-600 hover:bg-blue-700"
+                size="sm"
+              >
+                {extracting === batch._id ? (
+                  <>
+                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    Extracting...
+                  </>
+                ) : (
+                  "Start Extraction"
+                )}
+              </Button>
+            )}
+
+            {batch.status === "done" && (
+              <>
+                <Button
+                  onClick={() => handleEnrich(batch._id)}
+                  variant="outline"
+                  size="sm"
+                  disabled={extracting === batch._id}
+                >
+                  {extracting === batch._id ? (
+                    <>
+                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                      Enriching...
+                    </>
+                  ) : (
+                    "Enrich Data"
+                  )}
+                </Button>
+                <Button
+                  onClick={() => handleExportCSV(batch._id)}
+                  variant="outline"
+                  size="sm"
+                  disabled={extracting === batch._id}
+                >
+                  <Download className="w-3 h-3 mr-1" />
+                  Export CSV
+                </Button>
+              </>
+            )}
           </div>
-        )}
-      </CardContent>
-    </Card>
+        </Card>
+      ))}
+    </div>
   );
 }

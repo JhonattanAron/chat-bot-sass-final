@@ -2,12 +2,11 @@
 
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MapBatchCreator } from "@/components/google-maps/map-batch-creator";
-import { BatchList } from "@/components/batch/batch-list";
-import { MapPin, List } from "lucide-react";
-import { DashboardLayout } from "@/components/pages/dashboard/dashboard-layout";
-import Script from "next/script";
 import { GoogleMapsBatchList } from "@/components/google-maps/batch-list";
+import { MapPin, List } from "lucide-react";
+import Script from "next/script";
+import { MapBatchCreator } from "@/components/google-maps/map-batch-creator";
+import { DashboardLayout } from "@/components/pages/dashboard/dashboard-layout";
 
 export default function DashboardContent() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);

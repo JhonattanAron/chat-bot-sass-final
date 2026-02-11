@@ -35,6 +35,10 @@ export default function WhatsappDashboard() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [selectedAIModel, setSelectedAIModel] = useState(AI_MODELS[0].id);
   const [showCampaignModal, setShowCampaignModal] = useState(false);
+  const [count, setCount] = useState<number>(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>("");
+
   const [campaigns, setCampaigns] = useState<Campaign[]>([
     {
       id: "1",
@@ -55,6 +59,33 @@ export default function WhatsappDashboard() {
       createdAt: "2024-01-16",
     },
   ]);
+
+  useEffect(() => {
+    const fetchContacts = async () => {
+      try {
+        const res = await fetch("/api/backend/crm/contacts", {
+          credentials: "include",
+        });
+
+        if (!res.ok) throw new Error("Error al obtener contactos");
+
+        const result = await res.json();
+
+        setContacts(
+          result.data.map((item: any) => ({
+            id: item._id,
+            name: item.name,
+            phone: item.phone ?? "",
+            tags: item.tags ?? [],
+          })),
+        );
+      } catch (err) {
+        console.error("Error cargando contactos:", err);
+      }
+    };
+
+    fetchContacts();
+  }, []);
 
   const connectWhatsapp = async () => {
     setLoadingQr(true);
@@ -110,10 +141,98 @@ export default function WhatsappDashboard() {
         params: { userId: session.binding_id },
       })
       .then((res) => {
-        setQr(res.data.qr ?? null);
-        setConnected(res.data.connected ?? false);
+        setQr(res.data.qr || null);
+        setConnected(res.data.connected);
       });
   }, [session?.binding_id]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchCount = async () => {
+      try {
+        setLoading(true);
+
+        const res = await fetch("/api/backend/crm/contacts/count", {
+          credentials: "include",
+        });
+
+        if (!res.ok) throw new Error("Error al obtener el conteo");
+
+        const data = await res.json();
+
+        if (!cancelled) {
+          setCount(data.count ?? 0);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError("No se pudo cargar el total de contactos");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchCount();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleCreateCampaign = async (payload: {
+    name: string;
+    message: string;
+    assistantId: string;
+  }) => {
+    try {
+      if (contacts.length === 0) {
+        throw new Error("No hay contactos con teléfono");
+      }
+
+      // Prepara los contactos en el formato que espera el backend
+      const contactPayload = contacts
+        .filter((c) => c.phone) // solo contactos con teléfono
+        .map((c) => ({
+          name: c.name || undefined,
+          phone: c.phone,
+        }));
+
+      const res = await fetch("/api/backend/whastapp-qr/campaigns", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_id: session?.binding_id, // exacto como espera el backend
+          assistant_id: payload.assistantId, // nombre correcto
+          name: payload.name,
+          description: "", // opcional
+          message_template: payload.message, // exacto
+          contact: contactPayload, // singular y formato correcto
+          // scheduled_at: optional si quieres programarla
+        }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || "Error creando campaña");
+      }
+
+      const data = await res.json();
+
+      // Reflejar en UI
+      const newCampaign = data.campaign;
+
+      return newCampaign;
+    } catch (err) {
+      console.error("Error creando campaña:", err);
+      throw err;
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -160,18 +279,15 @@ export default function WhatsappDashboard() {
         contacts={contacts}
         aiModel={selectedAIModel}
         userId={session?.binding_id || ""}
-        onCampaignCreated={(campaign) => {
-          const newCampaign: Campaign = {
-            id: Date.now().toString(),
-            name: campaign.name,
-            message: campaign.message,
-            aiModel: campaign.aiModel,
-            contactCount: campaign.contacts.length,
-            status: "draft",
-            createdAt: new Date().toISOString(),
-          };
-          setCampaigns([...campaigns, newCampaign]);
+        onCampaignCreated={async (campaignForm) => {
+          const campaign = await handleCreateCampaign({
+            name: campaignForm.name,
+            message: campaignForm.message,
+            assistantId: campaignForm.aiModel,
+          });
+
           console.log("[v0] Campaign created:", campaign);
+          setShowCampaignModal(false);
         }}
       />
     </DashboardLayout>

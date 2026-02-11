@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react"
+import React, { Key, useEffect } from "react";
 
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
@@ -21,53 +21,19 @@ import {
   Loader2,
   Database,
 } from "lucide-react";
-import type { Contact } from "./crm-contacts-manager";
-
-interface ImportContactsModalProps {
-  onImportContacts: (contacts: Omit<Contact, "id" | "createdAt">[]) => void;
-}
+import { Contact } from "./crm-contacts-manager";
 
 interface Scraper {
+  source: string;
   id: string;
   name: string;
-  batches: { id: string; name: string; count: number }[];
+  batches: { _id: string; name: string; contacts: number }[];
 }
 
-// Mock de scrapers disponibles - reemplaza con datos reales de tu API
-const MOCK_SCRAPERS: Scraper[] = [
-  {
-    id: "scraper_1",
-    name: "LinkedIn Scraper",
-    batches: [
-      { id: "batch_1", name: "Batch 1 - Tech Professionals", count: 245 },
-      { id: "batch_2", name: "Batch 2 - Marketers", count: 189 },
-      { id: "batch_3", name: "Batch 3 - Managers", count: 312 },
-    ],
-  },
-  {
-    id: "scraper_2",
-    name: "Google Maps Scraper",
-    batches: [
-      { id: "batch_4", name: "Local Businesses - Food", count: 567 },
-      { id: "batch_5", name: "Local Businesses - Retail", count: 423 },
-    ],
-  },
-  {
-    id: "scraper_3",
-    name: "Web Directory Scraper",
-    batches: [
-      { id: "batch_6", name: "E-commerce Sites", count: 890 },
-      { id: "batch_7", name: "Service Providers", count: 654 },
-    ],
-  },
-];
-
-export function ImportContactsModal({
-  onImportContacts,
-}: ImportContactsModalProps) {
+export function ImportContactsModal() {
   const [open, setOpen] = useState(false);
   const [preview, setPreview] = useState<Omit<Contact, "id" | "createdAt">[]>(
-    []
+    [],
   );
   const [error, setError] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -76,6 +42,29 @@ export function ImportContactsModal({
   const [selectedScraper, setSelectedScraper] = useState<string>("");
   const [selectedBatch, setSelectedBatch] = useState<string>("");
   const [loadingScraper, setLoadingScraper] = useState(false);
+  const [deleteSource, setDeleteSource] = useState(false);
+  const [scrapers, setScrapers] = useState<Scraper[]>([]);
+  const [loadingScrapers, setLoadingScrapers] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+
+    setLoadingScrapers(true);
+
+    fetch("/api/backend/scrapers")
+      .then((r) => r.json())
+      .then((data) =>
+        setScrapers(
+          data.map((s: any) => ({
+            ...s,
+            batches: [],
+          })),
+        ),
+      )
+
+      .catch(() => setError("Error cargando scrapers"))
+      .finally(() => setLoadingScrapers(false));
+  }, [open]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -94,23 +83,15 @@ export function ImportContactsModal({
           return;
         }
 
-        const headers = lines[0]
-          .split(",")
-          .map((h) => h.trim().toLowerCase());
-        const nameIndex = headers.findIndex((h) =>
-          h.includes("nombre")
+        const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
+        const nameIndex = headers.findIndex((h) => h.includes("nombre"));
+        const phoneIndex = headers.findIndex(
+          (h) => h.includes("teléfono") || h.includes("phone"),
         );
-        const phoneIndex = headers.findIndex((h) =>
-          h.includes("teléfono") || h.includes("phone")
-        );
-        const emailIndex = headers.findIndex((h) =>
-          h.includes("email")
-        );
+        const emailIndex = headers.findIndex((h) => h.includes("email"));
 
         if (nameIndex === -1 || phoneIndex === -1) {
-          setError(
-            "El archivo debe contener columnas 'nombre' y 'teléfono'"
-          );
+          setError("El archivo debe contener columnas 'nombre' y 'teléfono'");
           return;
         }
 
@@ -149,91 +130,89 @@ export function ImportContactsModal({
     reader.readAsText(file);
   };
 
-  const handleImport = () => {
+  const handleImport = async () => {
     if (preview.length === 0) return;
-    onImportContacts(preview);
-    setPreview([]);
-    setError("");
-    setOpen(false);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+
+    try {
+      await fetch("/api/backend/crm/import", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          source: selectedScraper || "manual",
+          contacts: preview.map((c) => ({
+            name: c.name,
+            email: c.email,
+            phone: c.phone,
+            tags: "",
+            customFields: {
+              batchId: selectedBatch,
+              deleteSource,
+            },
+          })),
+        }),
+      });
+
+      setOpen(false);
+      setPreview([]);
+      setDeleteSource(false);
+    } catch (err) {
+      setError("Error al guardar contactos en CRM");
     }
   };
 
-  const handleScraperImport = async () => {
-    if (!selectedScraper || !selectedBatch) {
-      setError("Por favor selecciona un scraper y un batch");
-      return;
-    }
+  useEffect(() => {
+    if (!selectedScraper) return;
 
+    fetch(`/api/backend/scrapers/${selectedScraper}/batches`)
+      .then((r) => r.json())
+      .then((batches) =>
+        setScrapers((prev) =>
+          prev.map((s) => (s.id === selectedScraper ? { ...s, batches } : s)),
+        ),
+      )
+      .catch(() => setError("Error cargando batches"));
+  }, [selectedScraper]);
+
+  const handleScraperImport = async () => {
     setLoadingScraper(true);
     setError("");
 
-    // Simulación de importación desde scraper
-    // En producción, aquí iría una llamada a tu API
-    setTimeout(() => {
-      try {
-        // Datos mock generados basados en el batch seleccionado
-        const scraper = MOCK_SCRAPERS.find((s) => s.id === selectedScraper);
-        const batch = scraper?.batches.find((b) => b.id === selectedBatch);
+    try {
+      const res = await fetch(
+        `/api/backend/scrapers/${selectedScraper}/batches/${selectedBatch}/import`,
+        { method: "POST" },
+      );
+      console.log(res);
 
-        if (!scraper || !batch) {
-          setError("Scraper o batch no encontrado");
-          setLoadingScraper(false);
-          return;
-        }
+      if (!res.ok) throw new Error();
 
-        // Generar contactos de prueba
-        const mockContacts: Omit<Contact, "id" | "createdAt">[] = [];
-        const firstNames = [
-          "Carlos",
-          "María",
-          "Juan",
-          "Ana",
-          "Roberto",
-          "Patricia",
-          "Luis",
-          "Carmen",
-        ];
-        const lastNames = [
-          "García",
-          "López",
-          "Martínez",
-          "Rodríguez",
-          "Pérez",
-          "Sánchez",
-          "Díaz",
-          "Flores",
-        ];
+      const data = await res.json();
+      console.log(data);
 
-        for (let i = 0; i < Math.min(batch.count, 10); i++) {
-          const firstName =
-            firstNames[Math.floor(Math.random() * firstNames.length)];
-          const lastName =
-            lastNames[Math.floor(Math.random() * lastNames.length)];
-          const phone = `+57${Math.floor(Math.random() * 9000000000) + 1000000000}`;
-
-          mockContacts.push({
-            name: `${firstName} ${lastName}`,
-            phone,
-            email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@email.com`,
-            segment: "potencial",
-            interactionCount: 0,
-            value: 0,
-            notes: `Importado de ${scraper.name} - ${batch.name}`,
-          });
-        }
-
-        setPreview(mockContacts);
-        setLoadingScraper(false);
-      } catch (err) {
-        setError("Error al importar contactos del scraper");
-        setLoadingScraper(false);
-      }
-    }, 1500);
+      setPreview(
+        data.leads.map((c: any) => ({
+          name: c.name,
+          phone: c.phone,
+          segment: "potencial",
+          interactionCount: 0,
+          value: 0,
+        })),
+      );
+    } catch {
+      setError("Error al importar contactos del scraper");
+    } finally {
+      setLoadingScraper(false);
+    }
   };
 
-  const currentScraper = MOCK_SCRAPERS.find((s) => s.id === selectedScraper);
+  const currentScraper = scrapers.find((s) => s.id === selectedScraper);
+
+  const batches = Array.isArray(currentScraper?.batches)
+    ? currentScraper.batches
+    : [];
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -383,8 +362,8 @@ export function ImportContactsModal({
                   className="w-full px-3 py-2 rounded-md border bg-background text-sm"
                 >
                   <option value="">Elige un scraper...</option>
-                  {MOCK_SCRAPERS.map((scraper) => (
-                    <option key={scraper.id} value={scraper.id}>
+                  {scrapers.map((scraper, indx) => (
+                    <option key={indx} value={scraper.id}>
                       {scraper.name}
                     </option>
                   ))}
@@ -400,15 +379,16 @@ export function ImportContactsModal({
                   <select
                     value={selectedBatch}
                     onChange={(e) => {
+                      console.log(e.target.value);
                       setSelectedBatch(e.target.value);
                       setPreview([]);
                     }}
                     className="w-full px-3 py-2 rounded-md border bg-background text-sm"
                   >
                     <option value="">Elige un batch...</option>
-                    {currentScraper?.batches.map((batch) => (
-                      <option key={batch.id} value={batch.id}>
-                        {batch.name} ({batch.count} contactos)
+                    {batches.map((batch, indx) => (
+                      <option key={indx} value={batch._id}>
+                        {batch.name} ({batch.contacts} contactos)
                       </option>
                     ))}
                   </select>
@@ -485,30 +465,55 @@ export function ImportContactsModal({
                   </div>
 
                   {/* Botones de acción */}
-                  <div className="flex gap-2 justify-end pt-4">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        setPreview([]);
-                        setSelectedBatch("");
-                        setSelectedScraper("");
-                      }}
-                      className="bg-transparent"
-                    >
-                      Cambiar Batch
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        handleImport();
-                        setSelectedScraper("");
-                        setSelectedBatch("");
-                      }}
-                      disabled={preview.length === 0}
-                    >
-                      Importar {preview.length} Contacto
-                      {preview.length !== 1 ? "s" : ""}
-                    </Button>
+                  <div>
+                    <label className="flex items-start gap-3 rounded-lg border p-4 cursor-pointer hover:bg-muted/50 transition">
+                      <input
+                        type="checkbox"
+                        checked={deleteSource}
+                        onChange={(e) => setDeleteSource(e.target.checked)}
+                        className="mt-1 h-4 w-4"
+                      />
+                      <div>
+                        <p className="font-medium">
+                          Ahorra espacio en tu plataforma
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Elimina los contactos del módulo origen después de
+                          importarlos
+                        </p>
+                      </div>
+                    </label>
+
+                    {deleteSource && (
+                      <p className="text-xs text-orange-600">
+                        ⚠️ Esta acción no se puede deshacer
+                      </p>
+                    )}
+                    <div className="flex gap-2 justify-end pt-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setPreview([]);
+                          setSelectedBatch("");
+                          setSelectedScraper("");
+                        }}
+                        className="bg-transparent"
+                      >
+                        Cambiar Batch
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          handleImport();
+                          setSelectedScraper("");
+                          setSelectedBatch("");
+                        }}
+                        disabled={preview.length === 0}
+                      >
+                        Importar {preview.length} Contacto
+                        {preview.length !== 1 ? "s" : ""}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}

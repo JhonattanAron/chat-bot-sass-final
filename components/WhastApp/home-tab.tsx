@@ -48,7 +48,7 @@ export function HomeTab({
         </div>
         <Button
           onClick={onNewCampaign}
-          disabled={!connected || contactsCount === 0}
+          disabled={!connected}
           size="lg"
           className="gap-2"
         >
@@ -152,7 +152,7 @@ export function HomeTab({
                             </p>
                           </div>
                           <div className="flex items-end">
-                            <Link href={`/whatsapp/campaign/${campaign.id}`}>
+                            <Link href={`whatsapp-qr/campaign/${campaign.id}`}>
                               <Button
                                 variant="outline"
                                 size="sm"

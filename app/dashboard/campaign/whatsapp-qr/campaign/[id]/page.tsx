@@ -19,45 +19,7 @@ import { Separator } from "@/components/ui/separator";
 import { DashboardLayout } from "@/components/pages/dashboard/dashboard-layout";
 
 // Datos de campaña de ejemplo
-const mockCampaigns: Record<string, any> = {
-  "1": {
-    id: "1",
-    name: "Promoción de Verano 2024",
-    message:
-      "¡Hola! Te tenemos una sorpresa especial para este verano. Aprovecha un 30% de descuento en todos nuestros productos durante esta semana. Este descuento es exclusivo para ti como cliente especial. ¡No lo pierdas!",
-    aiModel: "gpt-4",
-    contactCount: 45,
-    status: "completed",
-    createdAt: "2024-01-15",
-    sentCount: 45,
-    deliveredCount: 45,
-    readCount: 38,
-    responseCount: 12,
-    contactsList: [
-      { id: "1", name: "Juan Pérez", phone: "+57 300 123 4567" },
-      { id: "2", name: "María García", phone: "+57 301 234 5678" },
-      { id: "3", name: "Carlos López", phone: "+57 302 345 6789" },
-    ],
-  },
-  "2": {
-    id: "2",
-    name: "Oferta Flash",
-    message:
-      "¡Atención! Oferta flash disponible por las próximas 24 horas. Descuentos de hasta 50% en productos seleccionados. Haz tu pedido ahora mismo y recibe envío gratis.",
-    aiModel: "gpt-3.5-turbo",
-    contactCount: 32,
-    status: "sending",
-    createdAt: "2024-01-16",
-    sentCount: 28,
-    deliveredCount: 26,
-    readCount: 15,
-    responseCount: 3,
-    contactsList: [
-      { id: "4", name: "Ana Rodríguez", phone: "+57 303 456 7890" },
-      { id: "5", name: "Luis Martínez", phone: "+57 304 567 8901" },
-    ],
-  },
-};
+const mockCampaigns: Record<string, any> = {};
 
 const statusConfig = {
   draft: {
