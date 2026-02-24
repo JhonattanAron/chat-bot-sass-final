@@ -34,32 +34,33 @@ export async function POST(req: Request) {
   </head>
   <body>
     <script>
-      window.addEventListener("DOMContentLoaded", () => {
-        new PPaymentButtonBox({
-          token: "${env.PAYPHONE_TOKEN}",  
-          storeId: "${env.PAYPHONE_STORE_ID}",
-          clientTransactionId: "order-${Date.now()}",
-          amount: ${totalCents},
-          amountWithoutTax: ${amountWithoutTax}, 
-          amountWithTax: ${amountWithTax},   
-          tax: ${tax},
-          service: ${service},
-          tip: ${tip},
-          currency: "USD",
-          reference: "${reference}",
-          email: "${email}",
-          defaultMethod: "card",
-          lang: "es",
-          timeZone: -5,
-          lat: "-1.831239",
-          lng: "-78.183406",
-          optionalParameter: "Parametro opcional",
-          phoneNumber: "+593999999999",
-          documentId: "1234567890",
-          identificationType: 1
-        }).render("pp-button");
-      });
-    </script>
+window.addEventListener("DOMContentLoaded", () => {
+  new PPaymentButtonBox({
+    token: "${env.PAYPHONE_TOKEN}",  
+    storeId: "${env.PAYPHONE_STORE_ID}",
+    clientTransactionId: "order-${Date.now()}",
+    amount: ${totalCents},
+    amountWithoutTax: ${amountWithoutTax}, 
+    amountWithTax: ${amountWithTax},   
+    tax: ${tax},
+    service: ${service},
+    tip: ${tip},
+    currency: "USD",
+    reference: "${reference}",
+    email: "${email}",
+    defaultMethod: "card",
+    lang: "es",
+    timeZone: -5,
+    lat: "-1.831239",
+    lng: "-78.183406",
+    optionalParameter: "Parametro opcional",
+    phoneNumber: "+593999999999",
+    documentId: "1234567890",
+    identificationType: 1}).render("pp-button");
+});
+</script>
+
+
     <div id="pp-button"></div>
   </body>
 </html>

@@ -1,7 +1,16 @@
 "use client";
 
 import type React from "react";
-import { Globe, Check, CreditCard, TrendingUp, BookText } from "lucide-react";
+import {
+  Globe,
+  Check,
+  CreditCard,
+  TrendingUp,
+  BookText,
+  ShoppingBag,
+  MailIcon,
+  Server,
+} from "lucide-react";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -115,6 +124,24 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       label: t("analytics"),
       icon: BarChart3,
       active: pathname === "/dashboard/analytics",
+    },
+    {
+      href: "/dashboard/vps",
+      label: t("Vps Admin"),
+      icon: Server,
+      active: pathname === "/dashboard/vps",
+    },
+    {
+      href: "/dashboard/corporative-email",
+      label: t("Email Corporativo"),
+      icon: MailIcon,
+      active: pathname === "/dashboard/corporative-email",
+    },
+    {
+      href: "/dashboard/shop",
+      label: t("Shop"),
+      icon: ShoppingBag,
+      active: pathname === "/dashboard/shop",
     },
     {
       href: "/dashboard/facturacion",

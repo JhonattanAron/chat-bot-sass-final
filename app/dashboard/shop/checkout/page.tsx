@@ -1,10 +1,10 @@
-import PaymentAdmin from "@/components/facturacion/payment-admin";
 import { DashboardLayout } from "@/components/pages/dashboard/dashboard-layout";
+import CheckoutPage from "@/components/shop/checkOutPage";
 
-export default function Home() {
+export default function CheckoutPageClient() {
   return (
     <DashboardLayout>
-      <PaymentAdmin />
+      <CheckoutPage />
     </DashboardLayout>
   );
 }
