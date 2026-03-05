@@ -55,6 +55,7 @@
     "html2pdf.js": "^0.14.0",
     "immer": "latest",
     "input-otp": "1.4.1",
+    "js-cookie": "^3.0.5",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.454.0",
     "mui-color-input": "latest",
@@ -81,6 +82,7 @@
     "zustand": "latest"
   },
   "devDependencies": {
+    "@types/js-cookie": "^3.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22",
     "@types/react": "^19",

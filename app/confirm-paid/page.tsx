@@ -119,27 +119,33 @@ export default function ConfirmPaymentPage() {
               }
             >
               <CardHeader>
-                <div className="flex items-center gap-3">
+                <div className="flex items-start gap-3">
                   {isApproved ? (
                     <CheckCircle className="w-8 h-8 text-green-600 flex-shrink-0" />
                   ) : (
-                    <AlertCircle className="w-8 h-8 text-yellow-600 flex-shrink-0" />
+                    <AlertCircle className="w-8 h-8 text-red-600 flex-shrink-0" />
                   )}
+
                   <div>
                     <CardTitle
-                      className={
-                        isApproved ? "text-green-900" : "text-yellow-900"
-                      }
+                      className={isApproved ? "text-green-900" : "text-red-900"}
                     >
-                      {isApproved ? "¡Pago aprobado!" : "Pago pendiente"}
+                      {isApproved ? "¡Pago aprobado!" : "Pago no procesado"}
                     </CardTitle>
+
                     <CardDescription
-                      className={
-                        isApproved ? "text-green-700" : "text-yellow-700"
-                      }
+                      className={isApproved ? "text-green-700" : "text-red-700"}
                     >
                       Estado: {transactionData.transactionStatus}
                     </CardDescription>
+
+                    {!isApproved && (
+                      <p className="mt-2 text-sm font-semibold text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+                        El pago no fue procesado correctamente. No se generó
+                        ninguna factura ni se activó ningún servicio. Por favor,
+                        intente nuevamente.
+                      </p>
+                    )}
                   </div>
                 </div>
               </CardHeader>
@@ -188,7 +194,8 @@ export default function ConfirmPaymentPage() {
                         Monto
                       </p>
                       <p className="text-2xl font-bold text-gray-900">
-                        {transactionData.amount} {transactionData.currency}
+                        {(transactionData.amount / 100).toFixed(2)}
+                        {transactionData.currency}
                       </p>
                     </div>
                     <div>

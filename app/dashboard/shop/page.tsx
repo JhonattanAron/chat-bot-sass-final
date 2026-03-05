@@ -1,6 +1,7 @@
 "use client";
 
-import { plans, addons } from "@/store/shop/store";
+import { useEffect, useState } from "react";
+import { useCatalogStore } from "@/store/shop/store";
 import { PlanCard } from "@/components/shop/plan-card";
 import { AddonCard } from "@/components/shop/addon-card";
 import { FloatingCart } from "@/components/shop/floating-cart";
@@ -8,6 +9,25 @@ import { Sparkles } from "lucide-react";
 import { DashboardLayout } from "@/components/pages/dashboard/dashboard-layout";
 
 export default function ShopPage() {
+  const {
+    plans,
+    addons,
+    fetchPlans,
+    fetchAddons,
+    billingInterval,
+    setBillingInterval,
+    loading,
+  } = useCatalogStore();
+
+  useEffect(() => {
+    fetchPlans();
+    fetchAddons();
+  }, [fetchPlans, fetchAddons]);
+
+  console.log(plans);
+  console.log(addons);
+  const [activeTab, setActiveTab] = useState<"plans" | "addons">("plans");
+
   return (
     <DashboardLayout>
       <div className="min-h-screen bg-background">
@@ -27,35 +47,104 @@ export default function ShopPage() {
             </h1>
 
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Comienza gratis, mejora según crezcas. Acceso flexible a créditos,
-              tokens y todas nuestras características premium.
+              Comienza gratis, mejora según crezcas.
             </p>
+            <div className="flex justify-center mt-4">
+              <div className="relative bg-muted/50 backdrop-blur-xl border border-border rounded-2xl p-1 shadow-lg">
+                {/* Sliding Background */}
+                <div
+                  className={`absolute top-1 bottom-1 w-1/2 rounded-xl bg-gradient-to-r from-primary to-accent transition-all duration-300 ease-in-out ${
+                    activeTab === "plans" ? "left-1" : "left-1/2"
+                  }`}
+                />
+
+                <div className="relative flex w-[320px]">
+                  <button
+                    onClick={() => setActiveTab("plans")}
+                    className={`w-1/2 py-3 text-sm font-semibold rounded-xl transition-all duration-300 ${
+                      activeTab === "plans"
+                        ? "text-white"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    🚀 Planes
+                  </button>
+
+                  <button
+                    onClick={() => setActiveTab("addons")}
+                    className={`w-1/2 py-3 text-sm font-semibold rounded-xl transition-all duration-300 ${
+                      activeTab === "addons"
+                        ? "text-white"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    ⚡ Addons
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 pb-20">
-          <div className="mb-20">
-            <h2 className="text-3xl font-bold mb-12">Planes de Suscripción</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {plans.map((plan) => (
-                <PlanCard key={plan.id} plan={plan} />
-              ))}
-            </div>
-          </div>
+          {/* PLANES */}
+          {activeTab === "plans" && (
+            <div className="mb-20">
+              <h2 className="text-3xl font-bold mb-12">
+                Planes de Suscripción
+              </h2>
 
-          <div>
-            <div className="mb-12">
-              <h2 className="text-3xl font-bold mb-2">Addons Adicionales</h2>
-              <p className="text-muted-foreground">
-                Compra créditos y tokens adicionales cuando lo necesites
-              </p>
+              <div className="flex justify-center mb-10">
+                <div className="inline-flex rounded-lg border bg-muted p-1">
+                  <button
+                    onClick={() => setBillingInterval("month")}
+                    className={`px-4 py-2 text-sm font-medium rounded-md transition ${
+                      billingInterval === "month"
+                        ? "bg-background shadow"
+                        : "text-muted-foreground"
+                    }`}
+                  >
+                    Mensual
+                  </button>
+
+                  <button
+                    onClick={() => setBillingInterval("year")}
+                    className={`px-4 py-2 text-sm font-medium rounded-md transition ${
+                      billingInterval === "year"
+                        ? "bg-background shadow"
+                        : "text-muted-foreground"
+                    }`}
+                  >
+                    Anual
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[...plans].reverse().map((plan) => (
+                  <PlanCard key={plan.id} plan={plan} />
+                ))}
+              </div>
             </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {addons.map((addon) => (
-                <AddonCard key={addon.id} addon={addon} />
-              ))}
+          )}
+
+          {/* ADDONS */}
+          {activeTab === "addons" && (
+            <div>
+              <div className="mb-12">
+                <h2 className="text-3xl font-bold mb-2">Addons Adicionales</h2>
+                <p className="text-muted-foreground">
+                  Compra recursos adicionales cuando lo necesites
+                </p>
+              </div>
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[...addons].reverse().map((addon) => (
+                  <AddonCard key={addon.id} addon={addon} />
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         <FloatingCart />

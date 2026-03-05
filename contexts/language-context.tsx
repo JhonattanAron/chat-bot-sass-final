@@ -247,7 +247,7 @@ type LanguageContextType = {
 
 // Crear el contexto
 const LanguageContext = createContext<LanguageContextType | undefined>(
-  undefined
+  undefined,
 );
 
 // Proveedor del contexto
@@ -271,7 +271,6 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   // Función para obtener una traducción
   const t = (key: string): string => {
     if (!translations[key]) {
-      console.warn(`Translation key not found: ${key}`);
       return key;
     }
     return translations[key][language];

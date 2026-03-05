@@ -30,10 +30,6 @@ export default function InvoicesTab() {
             <Filter className="w-4 h-4" />
           </Button>
         </div>
-        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground flex items-center gap-2 w-full sm:w-auto">
-          <Plus className="w-4 h-4" />
-          Nueva Factura
-        </Button>
       </div>
 
       {/* Tabla de Facturas */}

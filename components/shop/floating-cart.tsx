@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useCartStore } from "@/store/shop/cart-store";
 import { Button } from "@/components/ui/button";
@@ -8,11 +8,15 @@ import { ShoppingCart, X } from "lucide-react";
 
 export function FloatingCart() {
   const [isOpen, setIsOpen] = useState(false);
-  const { plan, addons, getTotalPrice, getTotalItems, removeAddon } =
-    useCartStore();
+  const { cart, syncCart, removeItem } = useCartStore();
 
-  const totalPrice = getTotalPrice();
-  const totalItems = getTotalItems();
+  useEffect(() => {
+    syncCart();
+  }, [syncCart]);
+
+  const items = cart?.items || [];
+  const totalItems = items.length;
+  const totalPrice = cart?.total || 0;
 
   return (
     <>
@@ -20,7 +24,6 @@ export function FloatingCart() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="fixed bottom-8 right-8 z-40 bg-gradient-to-br from-primary to-primary/80 text-primary-foreground rounded-full p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95"
-        aria-label="Toggle cart"
       >
         <ShoppingCart className="w-6 h-6" />
         {totalItems > 0 && (
@@ -30,7 +33,6 @@ export function FloatingCart() {
         )}
       </button>
 
-      {/* Panel del carrito */}
       {isOpen && (
         <div className="fixed inset-0 z-50">
           {/* Overlay */}
@@ -39,124 +41,71 @@ export function FloatingCart() {
             onClick={() => setIsOpen(false)}
           />
 
-          {/* Carrito deslizable */}
+          {/* Panel */}
           <div className="absolute bottom-0 right-0 w-full sm:w-96 bg-card rounded-t-3xl shadow-2xl animate-in slide-in-from-bottom-5 duration-300 flex flex-col max-h-[80vh]">
-            {/* Header sticky */}
-            <div className="sticky top-0 bg-card border-b border-border p-6 flex items-center justify-between rounded-t-3xl z-10">
+            {/* Header */}
+            <div className="sticky top-0 bg-card border-b border-border p-6 flex items-center justify-between rounded-t-3xl">
               <h2 className="text-xl font-semibold">Tu Carrito</h2>
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-2 hover:bg-secondary rounded-full transition-colors"
+                className="p-2 hover:bg-secondary rounded-full"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Contenido con scroll interno */}
+            {/* Contenido */}
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
-              {!plan && !addons?.length ? (
+              {items.length === 0 ? (
                 <div className="py-12 text-center">
                   <ShoppingCart className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-50" />
                   <p className="text-muted-foreground">Tu carrito está vacío</p>
                 </div>
               ) : (
-                <>
-                  {/* Plan */}
-                  {plan && (
-                    <div className="bg-secondary p-4 rounded-xl space-y-2">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h3 className="font-semibold">{plan.name}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            ${plan.price.toFixed(2)}
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => useCartStore.setState({ plan: null })}
-                          className="p-1 hover:bg-border rounded transition-colors"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                items.map((item: any) => (
+                  <div
+                    key={item.itemId}
+                    className="bg-secondary p-4 rounded-xl space-y-2"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h3 className="font-semibold">{item.name}</h3>
 
-                  {/* Addons */}
-                  {addons?.map((addon) => (
-                    <div
-                      key={addon.id}
-                      className="bg-secondary p-4 rounded-xl space-y-3"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-semibold text-sm">
-                            {addon.name}
-                          </h4>
+                        <p className="text-sm text-muted-foreground">
+                          {item.currency} {item.price} x {item.quantity}
+                        </p>
+
+                        {item.billingInterval && (
                           <p className="text-xs text-muted-foreground">
-                            ${addon.price} cada uno
+                            {item.billingInterval}
                           </p>
-                        </div>
-                        <button
-                          onClick={() => removeAddon(addon.id)}
-                          className="p-1 hover:bg-border rounded transition-colors"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
+                        )}
                       </div>
 
-                      {/* Cantidad */}
-                      <div className="flex items-center gap-2 bg-background rounded-lg p-2 w-fit">
-                        <button
-                          onClick={() =>
-                            useCartStore.setState((state) => ({
-                              addons: state.addons.map((item) =>
-                                item.id === addon.id
-                                  ? {
-                                      ...item,
-                                      quantity: Math.max(1, item.quantity - 1),
-                                    }
-                                  : item,
-                              ),
-                            }))
-                          }
-                          className="px-3 py-1 hover:bg-secondary rounded transition-colors text-sm"
-                        >
-                          −
-                        </button>
-                        <span className="px-3 py-1 text-sm font-medium min-w-8 text-center">
-                          {addon.quantity}
-                        </span>
-                        <button
-                          onClick={() =>
-                            useCartStore.setState((state) => ({
-                              addons: state.addons.map((item) =>
-                                item.id === addon.id
-                                  ? { ...item, quantity: item.quantity + 1 }
-                                  : item,
-                              ),
-                            }))
-                          }
-                          className="px-3 py-1 hover:bg-secondary rounded transition-colors text-sm"
-                        >
-                          +
-                        </button>
-                      </div>
-
-                      <p className="text-sm font-semibold text-primary">
-                        ${(addon.price * addon.quantity).toFixed(2)}
-                      </p>
+                      <button
+                        onClick={() => removeItem(item.itemId)}
+                        className="p-1 hover:bg-border rounded"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
                     </div>
-                  ))}
-                </>
+
+                    <p className="text-sm font-semibold text-primary">
+                      {item.currency} {(item.price * item.quantity).toFixed(2)}
+                    </p>
+                  </div>
+                ))
               )}
             </div>
 
-            {/* Footer sticky - Resumen y botón */}
-            {(plan || addons?.length) && (
+            {/* Footer */}
+            {items.length > 0 && (
               <div className="sticky bottom-0 bg-card border-t border-border p-6 space-y-4">
                 <div className="bg-gradient-to-br from-primary/10 to-accent/10 p-4 rounded-xl">
                   <p className="text-sm text-muted-foreground mb-2">Total</p>
-                  <p className="text-3xl font-bold">${totalPrice.toFixed(2)}</p>
+                  <p className="text-3xl font-bold">
+                    {cart.currency || "$"} {totalPrice.toFixed(2)}
+                  </p>
                 </div>
 
                 <Link
@@ -164,7 +113,7 @@ export function FloatingCart() {
                   className="block"
                   onClick={() => setIsOpen(false)}
                 >
-                  <Button className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-lg py-6 rounded-xl transition-all duration-300">
+                  <Button className="w-full text-lg py-6 rounded-xl">
                     Ir al Checkout
                   </Button>
                 </Link>

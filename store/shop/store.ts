@@ -1,7 +1,16 @@
+import { create } from "zustand";
+
+/* =========================
+   🔹 Tipos
+========================= */
+
+export type BillingInterval = "month" | "year";
+
 export type Plan = {
   id: string;
   name: string;
-  price: number;
+  monthlyPrice: number;
+  yearlyPrice: number;
   credits: number;
   tokens: number;
   monthlyConversations: number;
@@ -17,139 +26,120 @@ export type Addon = {
   name: string;
   description: string;
   price: number;
-  type: 'credits' | 'tokens';
+  type: "credits" | "tokens";
   quantity: number;
 };
 
-export type CartItem = {
-  id: string;
-  type: 'plan' | 'addon';
-  name: string;
-  price: number;
-  quantity: number;
-  data: Plan | Addon;
+type CatalogStore = {
+  plans: Plan[];
+  addons: Addon[];
+  loading: boolean;
+  billingInterval: BillingInterval;
+  setBillingInterval: (interval: BillingInterval) => void;
+  fetchPlans: () => Promise<void>;
+  fetchAddons: () => Promise<void>;
 };
 
-export const plans: Plan[] = [
-  {
-    id: 'free',
-    name: 'Free',
-    price: 0,
-    credits: 50,
-    tokens: 50000,
-    monthlyConversations: 200,
-    dailyConversations: 7,
-    tokensPerConversation: 0,
-    costPerToken: 0,
-    features: [
-      'Chatbots IA habilitados',
-      'WhatsApp QR (contactos propios)',
-      '1 campaña activa',
-      'Mensajes generados por IA'
-    ]
-  },
-  {
-    id: 'basico',
-    name: 'Básico',
-    price: 65,
-    credits: 650,
-    tokens: 10000000,
-    monthlyConversations: 8000,
-    dailyConversations: 260,
-    tokensPerConversation: 1000,
-    costPerToken: 0.00000650,
-    features: [
-      'Chatbots IA',
-      'WhatsApp QR + Bulk',
-      'Email campaigns',
-      'Scraping (pago por uso)',
-      'Automatizaciones avanzadas'
-    ],
-    popular: true
-  },
-  {
-    id: 'estandar',
-    name: 'Estándar',
-    price: 100,
-    credits: 1000,
-    tokens: 23000000,
-    monthlyConversations: 18000,
-    dailyConversations: 600,
-    tokensPerConversation: 1000,
-    costPerToken: 0.00000430,
-    features: [
-      'Automatizaciones avanzadas',
-      'WhatsApp + Email con IA',
-      'Scraping Google Maps',
-      'Enriquecimiento de leads'
-    ]
-  },
-  {
-    id: 'pro',
-    name: 'Pro',
-    price: 595,
-    credits: 5950,
-    tokens: 140000000,
-    monthlyConversations: 120000,
-    dailyConversations: 4000,
-    tokensPerConversation: 1000,
-    costPerToken: 0.00000290,
-    features: [
-      'Todos los módulos desbloqueados',
-      'Scraping masivo',
-      'APIs + Integraciones',
-      'Soporte dedicado'
-    ]
-  }
-];
+export const useCatalogStore = create<CatalogStore>((set, get) => ({
+  plans: [],
+  addons: [],
+  loading: false,
+  billingInterval: "month",
 
-export const addons: Addon[] = [
-  {
-    id: 'credits-10',
-    name: '10 Créditos',
-    description: '10 créditos adicionales para tu cuenta',
-    price: 1,
-    type: 'credits',
-    quantity: 10
+  setBillingInterval: (interval) => set({ billingInterval: interval }),
+
+  /* =========================
+     🔹 Fetch Plans
+  ========================= */
+  fetchPlans: async () => {
+    set({ loading: true });
+
+    try {
+      const res = await fetch(`/api/backend/catalog/products?category=saas`);
+      const response = await res.json();
+
+      const plansWithPrices: Plan[] = await Promise.all(
+        response.data.map(async (item: any) => {
+          const priceRes = await fetch(
+            `/api/backend/catalog/products/${item._id}/prices`,
+          );
+
+          const priceResponse = await priceRes.json();
+          const prices = priceResponse.prices ?? [];
+
+          const monthly = prices.find((p: any) => p.interval === "month");
+
+          const yearly = prices.find((p: any) => p.interval === "year");
+
+          return {
+            id: item._id,
+            name: item.name,
+            monthlyPrice: monthly?.price ?? 0,
+            yearlyPrice: yearly?.price ?? 0,
+            credits: item.metadata.credits,
+            tokens: item.metadata.tokens,
+            monthlyConversations: item.metadata.monthlyConversations,
+            dailyConversations: item.metadata.dailyConversations,
+            tokensPerConversation: item.metadata.tokensPerConversation,
+            costPerToken: item.metadata.costPerToken,
+            features: item.metadata.features,
+            popular: item.metadata.popular,
+          };
+        }),
+      );
+
+      set({ plans: plansWithPrices });
+    } catch (err) {
+      console.error("Error fetching plans:", err);
+    } finally {
+      set({ loading: false });
+    }
   },
-  {
-    id: 'credits-50',
-    name: '50 Créditos',
-    description: '50 créditos adicionales (5% descuento)',
-    price: 4.75,
-    type: 'credits',
-    quantity: 50
+
+  /* =========================
+     🔹 Fetch Addons
+  ========================= */
+  fetchAddons: async () => {
+    set({ loading: true });
+
+    try {
+      const res = await fetch(`/api/backend/catalog/products?category=addon`);
+      const response = await res.json();
+
+      const addonsWithPrices: Addon[] = await Promise.all(
+        response.data.map(async (item: any) => {
+          const priceRes = await fetch(
+            `/api/backend/catalog/products/${item._id}/prices`,
+          );
+
+          const priceResponse = await priceRes.json();
+          const price = priceResponse.prices?.[0]?.price ?? 0;
+
+          return {
+            id: item._id,
+            name: item.name,
+            description: item.description,
+            price,
+            type: item.metadata.type,
+            quantity: item.metadata.quantity,
+          };
+        }),
+      );
+
+      set({ addons: addonsWithPrices });
+    } catch (err) {
+      console.error("Error fetching addons:", err);
+    } finally {
+      set({ loading: false });
+    }
   },
-  {
-    id: 'credits-100',
-    name: '100 Créditos',
-    description: '100 créditos adicionales (10% descuento)',
-    price: 9,
-    type: 'credits',
-    quantity: 100
-  },
-  {
-    id: 'tokens-1m',
-    name: '1M Tokens',
-    description: '1 millón de tokens adicionales',
-    price: 6.5,
-    type: 'tokens',
-    quantity: 1000000
-  },
-  {
-    id: 'tokens-5m',
-    name: '5M Tokens',
-    description: '5 millones de tokens (5% descuento)',
-    price: 30.88,
-    type: 'tokens',
-    quantity: 5000000
-  },
-  {
-    id: 'tokens-10m',
-    name: '10M Tokens',
-    description: '10 millones de tokens (10% descuento)',
-    price: 58.5,
-    type: 'tokens',
-    quantity: 10000000
-  }
-];
+}));
+
+/* =========================
+   🔹 Helper dinámico
+========================= */
+
+export const getPlanPrice = (plan: Plan) => {
+  const { billingInterval } = useCatalogStore.getState();
+  return billingInterval === "month" ? plan.monthlyPrice : plan.yearlyPrice;
+};

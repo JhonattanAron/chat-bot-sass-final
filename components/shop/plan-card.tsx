@@ -3,10 +3,23 @@
 import { useCartStore } from "@/store/shop/cart-store";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useCatalogStore } from "@/store/shop/store";
+import {
+  ReactElement,
+  JSXElementConstructor,
+  ReactNode,
+  ReactPortal,
+  Key,
+} from "react";
 
 export function PlanCard({ plan }: { plan: any }) {
   const addPlan = useCartStore((state) => state.addPlan);
   const isPopular = plan.popular;
+  const billingInterval = useCatalogStore((state) => state.billingInterval);
+  console.log(plan);
+
+  const price =
+    billingInterval === "month" ? plan.monthlyPrice : plan.yearlyPrice;
 
   return (
     <div
@@ -51,9 +64,13 @@ export function PlanCard({ plan }: { plan: any }) {
         <div className="mb-8">
           <div className="flex items-baseline gap-1">
             <span className="text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              ${plan.price}
+              ${price}
             </span>
-            <span className="text-muted-foreground text-sm">/mes</span>
+            {billingInterval === "month" ? (
+              <span className="text-muted-foreground text-sm">/mes</span>
+            ) : (
+              <span className="text-muted-foreground text-sm">/Año</span>
+            )}
           </div>
         </div>
 
@@ -91,29 +108,54 @@ export function PlanCard({ plan }: { plan: any }) {
 
         {/* Características */}
         <div className="flex-1 mb-8 space-y-3">
-          {plan.features.map((feature, idx) => (
-            <div key={idx} className="flex items-start gap-3">
-              <div className="mt-0.5 flex-shrink-0">
-                <div
-                  className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                    isPopular
-                      ? "bg-gradient-to-br from-primary to-accent"
-                      : "bg-primary/20"
-                  }`}
-                >
-                  <Check
-                    className={`w-3 h-3 ${isPopular ? "text-white" : "text-primary"}`}
-                  />
+          {plan.features.map(
+            (
+              feature:
+                | string
+                | number
+                | bigint
+                | boolean
+                | ReactElement<unknown, string | JSXElementConstructor<any>>
+                | Iterable<ReactNode>
+                | ReactPortal
+                | Promise<
+                    | string
+                    | number
+                    | bigint
+                    | boolean
+                    | ReactPortal
+                    | ReactElement<unknown, string | JSXElementConstructor<any>>
+                    | Iterable<ReactNode>
+                    | null
+                    | undefined
+                  >
+                | null
+                | undefined,
+              idx: Key | null | undefined,
+            ) => (
+              <div key={idx} className="flex items-start gap-3">
+                <div className="mt-0.5 flex-shrink-0">
+                  <div
+                    className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                      isPopular
+                        ? "bg-gradient-to-br from-primary to-accent"
+                        : "bg-primary/20"
+                    }`}
+                  >
+                    <Check
+                      className={`w-3 h-3 ${isPopular ? "text-white" : "text-primary"}`}
+                    />
+                  </div>
                 </div>
+                <span className="text-sm text-card-foreground">{feature}</span>
               </div>
-              <span className="text-sm text-card-foreground">{feature}</span>
-            </div>
-          ))}
+            ),
+          )}
         </div>
 
         {/* Botón */}
         <Button
-          onClick={() => addPlan(plan)}
+          onClick={() => addPlan(plan.id, billingInterval)}
           className={`w-full py-3 rounded-xl font-semibold transition-all duration-300 ${
             isPopular
               ? "bg-gradient-to-r from-primary to-accent hover:shadow-lg text-primary-foreground shadow-md"

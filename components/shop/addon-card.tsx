@@ -10,7 +10,9 @@ export function AddonCard({ addon }: { addon: any }) {
   const [quantity, setQuantity] = useState(1);
 
   const handleAdd = () => {
-    addAddon(addon, quantity);
+    console.log(addon);
+
+    addAddon(addon.id, quantity);
     setQuantity(1);
   };
 

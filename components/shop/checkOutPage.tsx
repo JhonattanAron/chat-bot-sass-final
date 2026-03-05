@@ -12,9 +12,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, CheckCircle, ShoppingCart, Plus } from "lucide-react";
-import { PayphoneButton } from "../payments-metods/checkout-form-payphone";
+import {
+  ArrowLeft,
+  CheckCircle,
+  ShoppingCart,
+  Plus,
+  Loader2,
+  X,
+} from "lucide-react";
 import { useSession } from "next-auth/react";
+import { PayphoneButton } from "../payments-metods/checkout-form-payphone";
 
 // Mock data for saved addresses and payment methods
 const SAVED_ADDRESSES = [
@@ -51,10 +58,13 @@ const SAVED_PAYMENT_METHODS = [
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const plan = useCartStore((state) => state.plan);
-  const addons = useCartStore((state) => state.addons);
-  const getTotalPrice = useCartStore((state) => state.getTotalPrice);
+  const cart = useCartStore((state) => state.cart);
+  const loading = useCartStore((state) => state.loading);
+  const syncCart = useCartStore((state) => state.syncCart);
   const clearCart = useCartStore((state) => state.clearCart);
+  const { removeItem } = useCartStore();
+
+  const items = cart?.items || [];
   const { data: session } = useSession();
 
   const [selectedAddressId, setSelectedAddressId] = useState<string>("1");
@@ -77,6 +87,11 @@ export default function CheckoutPage() {
   const [orderData, setOrderData] = useState<any>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
+  // Cargar carrito al montar
+  useEffect(() => {
+    syncCart();
+  }, []);
+
   const selectedAddress = SAVED_ADDRESSES.find(
     (a) => a.id === selectedAddressId,
   );
@@ -96,37 +111,30 @@ export default function CheckoutPage() {
     setIsProcessing(true);
     setPaymentError(null);
 
-    console.log(paymentData);
+    console.log("[v0] Datos de pago:", paymentData);
 
     try {
+      // Obtener total del carrito
+      const totalPrice = cart?.total || 0;
+
       // Enviar datos del pedido al backend
       const response = await fetch("/api/backend/invoices", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({
-          clientName: formData.fullName,
-          clientEmail: formData.email,
-          clientAddress: formData.address,
+          clientName: session?.user?.email,
+          clientEmail: session?.user?.email,
+          clientAddress: "Quito Pifo Ecuador",
 
-          items: [
-            ...(plan
-              ? [
-                  {
-                    description: plan.name,
-                    quantity: 1,
-                    unitPrice: plan.price,
-                  },
-                ]
-              : []),
-
-            ...addons.map((addon) => ({
-              description: addon.name,
-              quantity: 1,
-              unitPrice: addon.price,
-            })),
-          ],
+          items:
+            cart?.items?.map((item: any) => ({
+              description: item.name || item.description,
+              quantity: item.quantity || 1,
+              unitPrice: item.price,
+            })) || [],
 
           subtotal: totalPrice,
           tax: 15,
@@ -147,12 +155,12 @@ export default function CheckoutPage() {
     } finally {
       setIsProcessing(false);
     }
+
     setTimeout(() => {
       const orderId = paymentData.transactionId;
       if (orderId) {
         router.push(`/dashboard/facturacion/order/${orderId}`);
       } else {
-        // Si no hay ID de pedido, recargar la página
         window.location.reload();
       }
     }, 3000);
@@ -161,11 +169,11 @@ export default function CheckoutPage() {
   // Escuchar mensajes del popup de pago
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
+      console.log("[v0] Evento de pago:", event.data.type);
+
       if (event.data.type === "payment_success") {
         console.log("[v0] Pago confirmado, procesando...", event.data.data);
         handlePaymentConfirm(event.data.data);
-
-        // Redirigir a la página de pedido después de procesar
       } else if (event.data.type === "payment_error") {
         setPaymentError("Error en el pago: " + event.data.error);
       } else if (event.data.type === "payment_cancelled") {
@@ -177,10 +185,22 @@ export default function CheckoutPage() {
     return () => window.removeEventListener("message", handleMessage);
   }, [router, orderData?.orderId]);
 
-  const totalPrice = getTotalPrice();
+  const totalPrice = cart?.total || 0;
 
-  // If no cart items, show empty state
-  if (!plan && !addons?.length && !orderComplete) {
+  // Si no hay carrito o está cargando
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Cargando carrito...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Si no hay items en el carrito
+  if (!cart?.items || cart.items.length === 0) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center">
@@ -230,33 +250,23 @@ export default function CheckoutPage() {
             <h3 className="text-xl font-bold mb-6">Detalles del Pedido</h3>
 
             <div className="space-y-3 mb-6 pb-6 border-b border-border">
-              {plan && (
-                <div className="flex items-start justify-between">
+              {cart?.items?.map((item: any) => (
+                <div key={item.id} className="flex items-start justify-between">
                   <div>
-                    <p className="font-semibold">{plan.name}</p>
+                    <p className="font-semibold">
+                      {item.name || item.description}
+                    </p>
                     <p className="text-sm text-muted-foreground">
-                      Plan mensual
+                      {item.type === "plan"
+                        ? "Plan " + item.billingInterval
+                        : "Addon"}
+                      {item.quantity &&
+                        item.quantity > 1 &&
+                        ` x${item.quantity}`}
                     </p>
                   </div>
                   <span className="font-bold text-lg">
-                    ${plan.price.toFixed(2)}
-                  </span>
-                </div>
-              )}
-
-              {addons?.map((addon) => (
-                <div
-                  key={addon.id}
-                  className="flex items-start justify-between"
-                >
-                  <div>
-                    <p className="font-semibold">{addon.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      x{addon.quantity}
-                    </p>
-                  </div>
-                  <span className="font-bold text-lg">
-                    ${(addon.price * addon.quantity).toFixed(2)}
+                    ${(item.price * (item.quantity || 1)).toFixed(2)}
                   </span>
                 </div>
               ))}
@@ -274,8 +284,8 @@ export default function CheckoutPage() {
 
           <div className="flex gap-4">
             <Button
-              onClick={() => {
-                clearCart();
+              onClick={async () => {
+                await clearCart();
                 router.push("/");
               }}
               className="flex-1 bg-gradient-to-r from-primary to-accent hover:shadow-lg py-3 text-lg font-semibold"
@@ -634,34 +644,37 @@ export default function CheckoutPage() {
               <h3 className="text-xl font-bold mb-6">Resumen del Pedido</h3>
 
               <div className="space-y-3 mb-6 pb-6 border-b border-border">
-                {plan && (
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-semibold text-sm">{plan.name}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        Plan mensual
-                      </p>
-                    </div>
-                    <span className="font-bold text-sm text-primary">
-                      ${plan.price.toFixed(2)}
-                    </span>
-                  </div>
-                )}
-
-                {addons?.map((addon) => (
+                {items.map((item: any) => (
                   <div
-                    key={addon.id}
-                    className="flex items-start justify-between"
+                    key={item.itemId}
+                    className="bg-secondary p-4 rounded-xl space-y-2"
                   >
-                    <div>
-                      <p className="font-semibold text-sm">{addon.name}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        x{addon.quantity}
-                      </p>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h3 className="font-semibold">{item.name}</h3>
+
+                        <p className="text-sm text-muted-foreground">
+                          {item.currency} {item.price} x {item.quantity}
+                        </p>
+
+                        {item.billingInterval && (
+                          <p className="text-xs text-muted-foreground">
+                            {item.billingInterval}
+                          </p>
+                        )}
+                      </div>
+
+                      <button
+                        onClick={() => removeItem(item.itemId)}
+                        className="p-1 hover:bg-border rounded"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
                     </div>
-                    <span className="font-bold text-sm text-primary">
-                      ${(addon.price * addon.quantity).toFixed(2)}
-                    </span>
+
+                    <p className="text-sm font-semibold text-primary">
+                      {item.currency} {(item.price * item.quantity).toFixed(2)}
+                    </p>
                   </div>
                 ))}
               </div>
