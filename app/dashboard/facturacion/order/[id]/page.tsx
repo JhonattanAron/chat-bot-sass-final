@@ -1,132 +1,19 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import html2pdf from "html2pdf.js";
 import { Download } from "lucide-react";
 import { DashboardLayout } from "@/components/pages/dashboard/dashboard-layout";
 import Image from "next/image";
+import { Invoice, useInvoicesStore } from "@/store/facturas-store";
+import { PayphoneButton } from "@/components/payments-metods/checkout-form-payphone";
 
-// Mock data para facturas
-const mockInvoices = {
-  1: {
-    id: "INV-001",
-    clientName: "Juan García López",
-    clientEmail: "juan.garcia@empresa.com",
-    clientAddress: "Calle Principal 123, Madrid 28001, España",
-    clientPhone: "+34 91 123 4567",
-    invoiceDate: "2024-02-15",
-    dueDate: "2024-03-15",
-    paymentStatus: "paid",
-    paymentMethod: "Transferencia Bancaria",
-    products: [
-      {
-        id: 1,
-        name: "Servicio de Consultoría",
-        quantity: 10,
-        unitPrice: 150,
-        description: "Horas de consultoría técnica",
-      },
-      {
-        id: 2,
-        name: "Desarrollo de Módulo",
-        quantity: 1,
-        unitPrice: 2500,
-        description: "Implementación de módulo personalizado",
-      },
-      {
-        id: 3,
-        name: "Soporte Técnico 3 meses",
-        quantity: 1,
-        unitPrice: 1200,
-        description: "Soporte técnico prioritario",
-      },
-    ],
-    subtotal: 4700,
-    taxRate: 0.21,
-    discount: 0,
-    notes:
-      "Gracias por tu confianza. Para cualquier duda, contacta con nuestro equipo de facturación.",
-    bankDetails: "ES91 2100 0418 4502 0005 1332",
-    bankName: "Banco Principal S.A.",
-  },
-  2: {
-    id: "INV-002",
-    clientName: "María Rodríguez Santos",
-    clientEmail: "maria.rodriguez@negocio.com",
-    clientAddress: "Av. Central 456, Barcelona 08002, España",
-    clientPhone: "+34 93 567 8901",
-    invoiceDate: "2024-02-10",
-    dueDate: "2024-02-28",
-    paymentStatus: "pending",
-    paymentMethod: "Pendiente de pago",
-    products: [
-      {
-        id: 1,
-        name: "Licencia Software Annual",
-        quantity: 5,
-        unitPrice: 500,
-        description: "Licencia anual por puesto",
-      },
-      {
-        id: 2,
-        name: "Mantenimiento y Actualizaciones",
-        quantity: 1,
-        unitPrice: 800,
-        description: "Incluye actualizaciones y parches",
-      },
-    ],
-    subtotal: 3300,
-    taxRate: 0.21,
-    discount: 300,
-    notes:
-      "Pago en 30 días desde la fecha de factura. Descuento por volumen aplicado.",
-    bankDetails: "ES92 3100 0800 5302 0001 7650",
-    bankName: "Banco Financiero S.A.",
-  },
-  3: {
-    id: "INV-003",
-    clientName: "Carlos Moreno Díaz",
-    clientEmail: "carlos.moreno@tech.es",
-    clientAddress: "Plaza Mayor 789, Valencia 46001, España",
-    clientPhone: "+34 96 234 5678",
-    invoiceDate: "2024-02-01",
-    dueDate: "2024-02-15",
-    paymentStatus: "overdue",
-    paymentMethod: "Crédito",
-    products: [
-      {
-        id: 1,
-        name: "Hosting Cloud Premium",
-        quantity: 1,
-        unitPrice: 1500,
-        description: "Servidor cloud dedicado 12 meses",
-      },
-      {
-        id: 2,
-        name: "Certificado SSL Wildcard",
-        quantity: 1,
-        unitPrice: 299,
-        description: "Certificado SSL de seguridad",
-      },
-      {
-        id: 3,
-        name: "Backups Automáticos",
-        quantity: 12,
-        unitPrice: 50,
-        description: "Backup mensual automático",
-      },
-    ],
-    subtotal: 2599,
-    taxRate: 0.21,
-    discount: 0,
-    notes:
-      "Esta factura se encuentra vencida. Por favor, proceda al pago inmediatamente.",
-    bankDetails: "ES93 4100 1200 8803 0002 3456",
-    bankName: "Banco Digital S.A.",
-  },
-};
-
-type InvoiceStatus = "paid" | "pending" | "overdue";
+type InvoiceStatus =
+  | "Pagada"
+  | "Pendiente"
+  | "Vencida"
+  | "Borrador"
+  | "Enviada";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -134,13 +21,74 @@ interface PageProps {
 
 export default function InvoicePage({ params }: PageProps) {
   const invoiceRef = useRef<HTMLDivElement>(null);
-  const [resolvedParams, setResolvedParams] = React.useState<{
-    id: string;
-  } | null>(null);
 
-  React.useEffect(() => {
+  const { fetchInvoiceByNumber } = useInvoicesStore();
+
+  const [invoice, setInvoice] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  const [resolvedParams, setResolvedParams] = useState<{ id: string } | null>(
+    null,
+  );
+
+  useEffect(() => {
     params.then(setResolvedParams);
   }, [params]);
+
+  useEffect(() => {
+    const handleMessage = async (event: MessageEvent) => {
+      if (event.data?.type === "payment_success") {
+        const paymentData = event.data.data;
+
+        try {
+          await fetch(`/api/backend/invoices/${invoice._id}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              status: "Pagada",
+              transactionId: paymentData.transactionId,
+              clientTransactionId: paymentData.clientTransactionId,
+              notes: `Pago confirmado ID: ${paymentData.transactionId}`,
+            }),
+          });
+
+          setLoading(true);
+
+          if (!resolvedParams) return;
+
+          const data = await fetchInvoiceByNumber(resolvedParams.id);
+
+          setInvoice(data);
+
+          setLoading(false);
+        } catch (error) {
+          console.error("Error actualizando factura", error);
+        }
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+
+    return () => window.removeEventListener("message", handleMessage);
+  }, [resolvedParams, fetchInvoiceByNumber]);
+
+  useEffect(() => {
+    const loadInvoice = async () => {
+      if (!resolvedParams) return;
+
+      setLoading(true);
+
+      const data = await fetchInvoiceByNumber(resolvedParams.id);
+
+      setInvoice(data);
+
+      setLoading(false);
+    };
+
+    loadInvoice();
+  }, [resolvedParams, fetchInvoiceByNumber]);
 
   if (!resolvedParams) {
     return (
@@ -150,8 +98,6 @@ export default function InvoicePage({ params }: PageProps) {
     );
   }
 
-  const invoice = mockInvoices[1];
-
   if (!invoice) {
     return (
       <div className="flex items-center justify-center h-screen text-xl">
@@ -160,17 +106,28 @@ export default function InvoicePage({ params }: PageProps) {
     );
   }
 
-  const tax = invoice.subtotal * invoice.taxRate;
-  const total = invoice.subtotal + tax - invoice.discount;
+  const products = invoice.items || [];
+  const invoiceDate = invoice.issuedDate;
+  const dueDate = invoice.dueDate;
+  const paymentStatus = invoice.status;
+
+  const subtotal = invoice.subtotal || 0;
+  const tax = invoice.tax || 0;
+  const discount = 0;
+  const total = invoice.total || 0;
 
   const getStatusColor = (status: InvoiceStatus) => {
     switch (status) {
-      case "paid":
+      case "Pagada":
         return "bg-green-100 text-green-800";
-      case "pending":
+      case "Pendiente":
         return "bg-yellow-100 text-yellow-800";
-      case "overdue":
+      case "Vencida":
         return "bg-red-100 text-red-800";
+      case "Borrador":
+        return "bg-gray-100 text-gray-800";
+      case "Enviada":
+        return "bg-blue-100 text-blue-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -178,12 +135,16 @@ export default function InvoicePage({ params }: PageProps) {
 
   const getStatusLabel = (status: InvoiceStatus) => {
     switch (status) {
-      case "paid":
+      case "Pagada":
         return "Pagada";
-      case "pending":
+      case "Pendiente":
         return "Pendiente";
-      case "overdue":
+      case "Vencida":
         return "Vencida";
+      case "Borrador":
+        return "Borrador";
+      case "Enviada":
+        return "Enviada";
       default:
         return "Desconocido";
     }
@@ -191,9 +152,10 @@ export default function InvoicePage({ params }: PageProps) {
 
   const downloadPDF = () => {
     if (!invoiceRef.current) return;
+
     const opt = {
       margin: 10,
-      filename: `${invoice.id}.pdf`,
+      filename: `${invoice.invoiceNumber}.pdf`,
       image: { type: "jpeg" as const, quality: 0.98 },
       html2canvas: { scale: 2 },
       jsPDF: {
@@ -203,40 +165,50 @@ export default function InvoicePage({ params }: PageProps) {
       },
     };
 
-    const element = invoiceRef.current;
-
-    html2pdf().set(opt).from(element).save();
+    html2pdf().set(opt).from(invoiceRef.current).save();
   };
+
+  const canPay = paymentStatus === "Pendiente" || paymentStatus === "Vencida";
 
   return (
     <DashboardLayout>
       <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
-          {/* Header con botón de descarga */}
+          {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
-                Factura {invoice.id}
+                Factura {invoice.invoiceNumber}
               </h1>
               <p className="text-gray-600 mt-1">
                 Gestión de facturas y documentos
               </p>
             </div>
-            <button
-              onClick={downloadPDF}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-            >
-              <Download size={20} />
-              Descargar PDF
-            </button>
+
+            <div className=" ">
+              <button
+                onClick={downloadPDF}
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-7 mb-3 py-2 rounded-lg font-medium transition-colors"
+              >
+                <Download size={20} />
+                Descargar PDF
+              </button>
+              {canPay && (
+                <PayphoneButton
+                  amount={total}
+                  reference={invoice.invoiceNumber}
+                  email={invoice.clientEmail}
+                />
+              )}
+            </div>
           </div>
 
-          {/* Contenedor de la factura para PDF */}
+          {/* Factura */}
           <div
             ref={invoiceRef}
             className="bg-white rounded-lg shadow-lg p-8 mb-8"
           >
-            {/* Header de la factura */}
+            {/* Header factura */}
             <div className="grid grid-cols-2 gap-8 mb-8 pb-8 border-b border-gray-200">
               <div>
                 <h2 className="text-2xl font-bold text-blue-600 mb-2">
@@ -247,117 +219,108 @@ export default function InvoicePage({ params }: PageProps) {
                     height={50}
                     className="inline-block mr-2"
                   />
-                  Aurentric AI labs
+                  Aurentric AI Labs
                 </h2>
+
                 <p className="text-gray-600 text-sm">
                   Número:{" "}
                   <span className="font-semibold text-gray-900">
-                    {invoice.id}
+                    {invoice.invoiceNumber}
                   </span>
                 </p>
+
                 <p className="text-gray-600 text-sm">
                   Fecha:{" "}
                   <span className="font-semibold text-gray-900">
-                    {new Date(invoice.invoiceDate).toLocaleDateString("es-ES")}
+                    {invoiceDate
+                      ? new Date(invoiceDate).toLocaleDateString("es-ES")
+                      : "-"}
                   </span>
                 </p>
+
                 <p className="text-gray-600 text-sm">
                   Vencimiento:{" "}
                   <span className="font-semibold text-gray-900">
-                    {new Date(invoice.dueDate).toLocaleDateString("es-ES")}
+                    {dueDate
+                      ? new Date(dueDate).toLocaleDateString("es-ES")
+                      : "-"}
                   </span>
                 </p>
               </div>
+
               <div className="text-right">
                 <div
-                  className={`inline-block px-4 py-2 rounded-lg font-semibold ${getStatusColor(invoice.paymentStatus as InvoiceStatus)}`}
+                  className={`inline-block px-4 py-2 rounded-lg font-semibold ${getStatusColor(
+                    paymentStatus,
+                  )}`}
                 >
-                  {getStatusLabel(invoice.paymentStatus as InvoiceStatus)}
+                  {getStatusLabel(paymentStatus)}
                 </div>
+
                 <p className="text-gray-600 text-sm mt-4">Método de pago:</p>
                 <p className="font-semibold text-gray-900">
-                  {invoice.paymentMethod}
+                  {"Online - Credit Card"}
                 </p>
               </div>
             </div>
 
-            {/* Datos del cliente */}
+            {/* Cliente */}
             <div className="grid grid-cols-2 gap-8 mb-8">
               <div>
                 <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">
                   Facturado a
                 </h3>
+
                 <p className="font-semibold text-gray-900 text-lg">
                   {invoice.clientName}
                 </p>
+
                 <p className="text-gray-600 text-sm">{invoice.clientAddress}</p>
+
                 <p className="text-gray-600 text-sm mt-2">
                   <span className="font-semibold">Email:</span>{" "}
                   {invoice.clientEmail}
                 </p>
-                <p className="text-gray-600 text-sm">
-                  <span className="font-semibold">Teléfono:</span>{" "}
-                  {invoice.clientPhone}
-                </p>
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">
-                  Detalles bancarios
-                </h3>
-                <p className="text-gray-600 text-sm">
-                  <span className="font-semibold">Banco:</span>{" "}
-                  {invoice.bankName}
-                </p>
-                <p className="text-gray-600 text-sm mt-2">
-                  <span className="font-semibold">IBAN:</span>
-                </p>
-                <p className="font-mono text-sm text-gray-900 break-all">
-                  {invoice.bankDetails}
-                </p>
               </div>
             </div>
 
-            {/* Tabla de productos */}
+            {/* Productos */}
             <div className="mb-8">
               <table className="w-full">
                 <thead>
                   <tr className="border-b-2 border-gray-300">
-                    <th className="text-left py-3 px-4 font-semibold text-gray-900">
+                    <th className="text-left py-3 px-4 font-semibold">
                       Descripción
                     </th>
-                    <th className="text-right py-3 px-4 font-semibold text-gray-900">
+                    <th className="text-right py-3 px-4 font-semibold">
                       Cantidad
                     </th>
-                    <th className="text-right py-3 px-4 font-semibold text-gray-900">
+                    <th className="text-right py-3 px-4 font-semibold">
                       P. Unitario
                     </th>
-                    <th className="text-right py-3 px-4 font-semibold text-gray-900">
+                    <th className="text-right py-3 px-4 font-semibold">
                       Total
                     </th>
                   </tr>
                 </thead>
+
                 <tbody>
-                  {invoice.products.map((product) => (
-                    <tr
-                      key={product.id}
-                      className="border-b border-gray-200 hover:bg-gray-50"
-                    >
+                  {products.map((product: any, index: number) => (
+                    <tr key={index} className="border-b border-gray-200">
                       <td className="py-4 px-4">
-                        <p className="font-semibold text-gray-900">
-                          {product.name}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {product.description}
-                        </p>
+                        <p className="font-semibold">{product.description}</p>
                       </td>
-                      <td className="text-right py-4 px-4 text-gray-900">
+
+                      <td className="text-right py-4 px-4">
                         {product.quantity}
                       </td>
-                      <td className="text-right py-4 px-4 text-gray-900">
-                        €{product.unitPrice.toFixed(2)}
+
+                      <td className="text-right py-4 px-4">
+                        ${product.unitPrice.toFixed(2)}
                       </td>
-                      <td className="text-right py-4 px-4 font-semibold text-gray-900">
-                        €{(product.quantity * product.unitPrice).toFixed(2)}
+
+                      <td className="text-right py-4 px-4 font-semibold">
+                        ${(product.quantity * product.unitPrice).toFixed(2)}
                       </td>
                     </tr>
                   ))}
@@ -365,59 +328,44 @@ export default function InvoicePage({ params }: PageProps) {
               </table>
             </div>
 
-            {/* Resumen de totales */}
+            {/* Totales */}
             <div className="flex justify-end mb-8">
               <div className="w-full sm:w-80">
-                <div className="flex justify-between py-2 border-b border-gray-200">
-                  <span className="text-gray-700">Subtotal:</span>
-                  <span className="font-semibold text-gray-900">
-                    €{invoice.subtotal.toFixed(2)}
-                  </span>
+                <div className="flex justify-between py-2 border-b">
+                  <span>Subtotal:</span>
+                  <span>${subtotal.toFixed(2)}</span>
                 </div>
-                {invoice.discount > 0 && (
-                  <div className="flex justify-between py-2 border-b border-gray-200">
-                    <span className="text-gray-700">Descuento:</span>
-                    <span className="font-semibold text-red-600">
-                      -€{invoice.discount.toFixed(2)}
+
+                {discount > 0 && (
+                  <div className="flex justify-between py-2 border-b">
+                    <span>Descuento:</span>
+                    <span className="text-red-600">
+                      -${discount.toFixed(2)}
                     </span>
                   </div>
                 )}
-                <div className="flex justify-between py-2 border-b border-gray-200">
-                  <span className="text-gray-700">
-                    IVA ({(invoice.taxRate * 100).toFixed(0)}%):
-                  </span>
-                  <span className="font-semibold text-gray-900">
-                    €{tax.toFixed(2)}
-                  </span>
+
+                <div className="flex justify-between py-2 border-b">
+                  <span>Impuestos:</span>
+                  <span>${tax.toFixed(2)}</span>
                 </div>
+
                 <div className="flex justify-between py-3 bg-blue-50 px-4 rounded-lg">
-                  <span className="font-semibold text-gray-900 text-lg">
-                    Total:
-                  </span>
+                  <span className="font-semibold text-lg">Total:</span>
                   <span className="font-bold text-blue-600 text-lg">
-                    €{total.toFixed(2)}
+                    ${total.toFixed(2)}
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Notas y términos */}
-            <div className="bg-gray-50 p-6 rounded-lg">
-              <h3 className="font-semibold text-gray-900 mb-2">Notas:</h3>
-              <p className="text-sm text-gray-700">{invoice.notes}</p>
-            </div>
-          </div>
-
-          {/* Información adicional */}
-          <div className="grid grid-cols-2 gap-4 text-center text-sm text-gray-600">
-            <div>
-              <p className="font-semibold text-gray-900">¿Preguntas?</p>
-              <p>Contacta con facturación@empresa.com</p>
-            </div>
-            <div>
-              <p className="font-semibold text-gray-900">Términos de pago</p>
-              <p>Pago dentro de 30 días desde la emisión</p>
-            </div>
+            {/* Notas */}
+            {invoice.notes && (
+              <div className="bg-gray-50 p-6 rounded-lg">
+                <h3 className="font-semibold mb-2">Notas:</h3>
+                <p className="text-sm">{invoice.notes}</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

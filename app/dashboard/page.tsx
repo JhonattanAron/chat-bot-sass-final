@@ -22,10 +22,12 @@ import {
   AlertCircle,
   Zap,
   Loader2,
+  DollarSign,
 } from "lucide-react";
 import { TokenCounterGlobal } from "@/components/token-counter-global";
 import { useDashboardStore } from "@/store/dashboard-store";
 import { useSession } from "next-auth/react";
+import { CreditDashboard } from "@/components/credits/credit-dashboard";
 
 export default function DashboardPage() {
   const { data: session } = useSession();
@@ -108,6 +110,18 @@ export default function DashboardPage() {
                 No token usage data available
               </div>
             )}
+          </CardContent>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5 text-green-500" />
+              Credits
+            </CardTitle>
+            <CardDescription>
+              Monitor your Credits consumption and limits
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <CreditDashboard />
           </CardContent>
         </Card>
 

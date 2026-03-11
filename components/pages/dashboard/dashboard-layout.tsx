@@ -10,6 +10,7 @@ import {
   ShoppingBag,
   MailIcon,
   Server,
+  AppleIcon,
 } from "lucide-react";
 
 import { useState, useEffect } from "react";
@@ -49,6 +50,8 @@ import { Badge } from "@/components/ui/badge";
 import { TokenCounterCompact } from "@/components/token-counter-compact";
 import { signOut, useSession } from "next-auth/react";
 import { PageWrapper } from "@/components/page-wrapper";
+import { CreditsNavbar } from "@/components/credits/credit-navbar";
+import { PlanNavbar } from "@/components/credits/paln-navbar";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -110,21 +113,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         pathname === "/dashboard/bots" ||
         pathname.startsWith("/dashboard/bots/"),
     },
-    {
-      href: "/dashboard/scraping",
-      label: t("Scraping"),
-      icon: BookText,
-      active:
-        pathname === "/dashboard/scraping" ||
-        pathname.startsWith("/dashboard/scraping"),
-    },
 
-    {
-      href: "/dashboard/analytics",
-      label: t("analytics"),
-      icon: BarChart3,
-      active: pathname === "/dashboard/analytics",
-    },
     {
       href: "/dashboard/vps",
       label: t("Vps Admin"),
@@ -142,6 +131,26 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       label: t("Shop"),
       icon: ShoppingBag,
       active: pathname === "/dashboard/shop",
+    },
+    {
+      href: "/dashboard/ai-models",
+      label: t("Modelos de IA"),
+      icon: AppleIcon,
+      active: pathname === "/dashboard/ai-models",
+    },
+    {
+      href: "/dashboard/scraping",
+      label: t("Scraping"),
+      icon: BookText,
+      active:
+        pathname === "/dashboard/scraping" ||
+        pathname.startsWith("/dashboard/scraping"),
+    },
+    {
+      href: "/dashboard/analytics",
+      label: t("analytics"),
+      icon: BarChart3,
+      active: pathname === "/dashboard/analytics",
     },
     {
       href: "/dashboard/facturacion",
@@ -279,15 +288,20 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </span>
         </Link>
         <div className="relative ml-auto flex-1 md:grow-0 md:basis-72">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder={t("search")}
-            className="w-full rounded-lg glass-effect border-border/50 pl-8 md:w-72 focus:ring-2 focus:ring-primary/20"
-          />
+          {
+            //<Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            //<Input
+            //  type="search"
+            //  placeholder={t("search")}
+            //  className="w-full rounded-lg glass-effect border-border/50 pl-8 md:w-72 focus:ring-2 focus:ring-primary/20"
+            ///>
+          }
         </div>
         <div className="flex items-center gap-2">
+          <PlanNavbar />
+          <CreditsNavbar />
           <TokenCounterCompact />
+
           <ModeToggle />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -429,28 +443,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                       {route.label}
                     </Link>
                   ))}
-                </div>
-              </div>
-
-              <div className="px-3 py-2">
-                <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
-                  Acciones rápidas
-                </h2>
-                <div className="space-y-1">
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start px-4 py-2 h-auto"
-                  >
-                    <Bot className="mr-2 h-5 w-5 text-muted-foreground" />
-                    Crear nuevo bot
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start px-4 py-2 h-auto"
-                  >
-                    <BarChart3 className="mr-2 h-5 w-5 text-muted-foreground" />
-                    Ver estadísticas
-                  </Button>
                 </div>
               </div>
             </div>

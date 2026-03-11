@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { PayphoneButton } from "../payments-metods/checkout-form-payphone";
+import { tr } from "date-fns/locale";
 
 // Mock data for saved addresses and payment methods
 const SAVED_ADDRESSES = [
@@ -111,8 +112,6 @@ export default function CheckoutPage() {
     setIsProcessing(true);
     setPaymentError(null);
 
-    console.log("[v0] Datos de pago:", paymentData);
-
     try {
       // Obtener total del carrito
       const totalPrice = cart?.total || 0;
@@ -135,10 +134,13 @@ export default function CheckoutPage() {
               quantity: item.quantity || 1,
               unitPrice: item.price,
             })) || [],
+          transactionId: paymentData.transactionId,
+          clientTransactionId: paymentData.clientTransactionId,
 
           subtotal: totalPrice,
           tax: 15,
           total: totalPrice,
+          status: "Pagada",
           notes: `Pago confirmado ID: ${paymentData.transactionId}`,
         }),
       });
@@ -146,24 +148,21 @@ export default function CheckoutPage() {
       if (!response.ok) throw new Error("Error al procesar el pedido");
 
       const result = await response.json();
-      console.log("[v0] Pedido procesado:", result);
       setOrderData(result.order);
       setOrderComplete(true);
+      setTimeout(() => {
+        const orderId = paymentData.transactionId;
+        if (orderId) {
+          router.push(`/dashboard/facturacion/order/${result.invoiceNumber}`);
+        } else {
+          window.location.reload();
+        }
+      }, 3000);
     } catch (error) {
-      console.error("[v0] Error processing payment:", error);
       setPaymentError("Error al procesar el pago. Intenta de nuevo.");
     } finally {
       setIsProcessing(false);
     }
-
-    setTimeout(() => {
-      const orderId = paymentData.transactionId;
-      if (orderId) {
-        router.push(`/dashboard/facturacion/order/${orderId}`);
-      } else {
-        window.location.reload();
-      }
-    }, 3000);
   };
 
   // Escuchar mensajes del popup de pago

@@ -3,7 +3,7 @@
 export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   confirmPayment,
   ConfirmPaymentResponse,
@@ -16,10 +16,17 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, XCircle, Loader2, AlertCircle } from "lucide-react";
+import {
+  CheckCircle,
+  XCircle,
+  Loader2,
+  AlertCircle,
+  ArrowBigLeft,
+} from "lucide-react";
 
 export default function ConfirmPaymentClient() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [transactionData, setTransactionData] =
     useState<ConfirmPaymentResponse | null>(null);
@@ -154,6 +161,9 @@ export default function ConfirmPaymentClient() {
             </Card>
 
             <Card>
+              <Button className="m-3" onClick={() => router.back()}>
+                <ArrowBigLeft /> Regresar
+              </Button>
               <CardHeader>
                 <CardTitle className="text-lg">
                   Detalles de la transacción
@@ -339,9 +349,6 @@ Email: ${transactionData.email}
                 className="flex-1"
               >
                 Copiar detalles
-              </Button>
-              <Button onClick={() => window.close()} className="flex-1">
-                Cerrar esta pestaña
               </Button>
             </div>
             <p className="text-sm text-center text-green-600 font-medium">

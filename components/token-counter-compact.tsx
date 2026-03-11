@@ -30,24 +30,44 @@ export function TokenCounterCompact() {
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="flex items-center gap-1 cursor-help">
+          <div className="flex items-center gap-2 rounded-md border bg-muted/40 px-3 py-1.5 cursor-help">
             <Zap className="h-4 w-4 text-primary" />
-            <Badge variant={getVariant()} className="text-xs px-2 py-0 h-5">
+            <span className="text-xs text-muted-foreground">Tokens</span>
+            <Badge
+              variant={getVariant()}
+              className="text-xs px-2 py-0 h-5 font-semibold"
+            >
               {Math.round(percentage)}%
             </Badge>
           </div>
         </TooltipTrigger>
-        <TooltipContent side="bottom" className="flex flex-col gap-1 p-2">
-          <div className="text-xs font-medium">Token Usage</div>
-          <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
-            <span className="text-muted-foreground">Input:</span>
-            <span className="text-right">{inputTokens.toLocaleString()}</span>
-            <span className="text-muted-foreground">Output:</span>
-            <span className="text-right">{outputTokens.toLocaleString()}</span>
-            <span className="text-muted-foreground">Total:</span>
-            <span className="text-right">{totalTokens.toLocaleString()}</span>
-            <span className="text-muted-foreground">Limit:</span>
-            <span className="text-right">{maxTokens.toLocaleString()}</span>
+
+        <TooltipContent
+          side="bottom"
+          className="flex flex-col gap-1.5 p-3 bg-background border border-border rounded-md shadow-lg w-48"
+        >
+          <div className="text-xs font-medium">Uso de Tokens</div>
+
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs ">
+            <span className="text-foreground">Input:</span>
+            <span className="text-right text-foreground">
+              {inputTokens.toLocaleString()}
+            </span>
+
+            <span className="text-foreground">Output:</span>
+            <span className="text-right text-foreground">
+              {outputTokens.toLocaleString()}
+            </span>
+
+            <span className="text-foreground">Total:</span>
+            <span className="text-right text-foreground">
+              {totalTokens.toLocaleString()}
+            </span>
+
+            <span className="text-foreground">Límite:</span>
+            <span className="text-right text-foreground">
+              {maxTokens.toLocaleString()}
+            </span>
           </div>
         </TooltipContent>
       </Tooltip>
