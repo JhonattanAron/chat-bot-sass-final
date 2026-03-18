@@ -35,7 +35,7 @@ const handler = NextAuth({
 
       async authorize(credentials) {
         try {
-          const res = await fetch(`https://api.aurentric.com/auth/login`, {
+          const res = await fetch(`${env.NEST_API_URL}/auth/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -44,7 +44,7 @@ const handler = NextAuth({
             }),
           });
 
-          console.log("Estado de la respuesta:", res.status);
+          console.log("Estado de la respuesta:", res);
 
           if (!res.ok) {
             const errorData = await res.json();
@@ -102,7 +102,7 @@ const handler = NextAuth({
         try {
           // Solicitar el token personalizado al backend
           const response = await fetch(
-            `https://api.aurentric.com/auth/google-login`,
+            `${env.NEST_API_URL}/auth/google-login`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -175,7 +175,7 @@ const handler = NextAuth({
       if (account?.provider === "google") {
         try {
           const response = await fetch(
-            `https://api.aurentric.com/auth/google-login`,
+            `${env.NEST_API_URL}/auth/google-login`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },

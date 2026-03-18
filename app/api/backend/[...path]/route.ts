@@ -30,7 +30,10 @@ export async function DELETE(req: NextRequest, { params }: RouteContext) {
 }
 
 async function proxy(req: NextRequest, path: string[]) {
-  const publicRoutes = [["web-configs", "validate"]]; // rutas públicas
+  const publicRoutes = [
+    ["web-configs", "validate"],
+    ["auth", "register"], // <-- agregar esta
+  ]; // rutas públicas
 
   // Comprobar si la ruta actual está en la lista de rutas públicas
   const isPublic = publicRoutes.some(
