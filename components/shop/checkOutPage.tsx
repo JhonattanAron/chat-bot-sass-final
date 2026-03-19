@@ -140,7 +140,7 @@ export default function CheckoutPage() {
           subtotal: totalPrice,
           tax: 15,
           total: totalPrice,
-          status: "Pagada",
+          status: "Pendiente",
           notes: `Pago confirmado ID: ${paymentData.transactionId}`,
         }),
       });
