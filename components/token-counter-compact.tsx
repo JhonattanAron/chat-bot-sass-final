@@ -9,16 +9,22 @@ import {
 } from "@/components/ui/tooltip";
 import { Zap } from "lucide-react";
 import { useDashboardStore } from "../store/dashboard-store";
+import { useResourcesStore } from "@/store/resourses-store";
 
 export function TokenCounterCompact() {
-  const { tokenUsage } = useDashboardStore();
+  const tokenUsage = useDashboardStore((state) => state.tokenUsage);
 
-  const inputTokens = tokenUsage?.input_tokens || 0;
-  const outputTokens = tokenUsage?.output_tokens || 0;
-  const maxTokens = tokenUsage?.max_tokens || 10000;
+  const tokens = useResourcesStore((state) => state.resources.tokens);
+
+  const inputTokens = tokenUsage?.input_tokens ?? 0;
+  const outputTokens = tokenUsage?.output_tokens ?? 0;
 
   const totalTokens = inputTokens + outputTokens;
-  const percentage = (totalTokens / maxTokens) * 100;
+
+  // 🔥 límite REAL del plan
+  const maxTokens = tokens?.total ?? 0;
+
+  const percentage = maxTokens > 0 ? (totalTokens / maxTokens) * 100 : 0;
 
   const getVariant = () => {
     if (percentage >= 90) return "destructive";
@@ -48,26 +54,18 @@ export function TokenCounterCompact() {
         >
           <div className="text-xs font-medium">Uso de Tokens</div>
 
-          <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs ">
-            <span className="text-foreground">Input:</span>
-            <span className="text-right text-foreground">
-              {inputTokens.toLocaleString()}
-            </span>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+            <span>Input:</span>
+            <span className="text-right">{inputTokens.toLocaleString()}</span>
 
-            <span className="text-foreground">Output:</span>
-            <span className="text-right text-foreground">
-              {outputTokens.toLocaleString()}
-            </span>
+            <span>Output:</span>
+            <span className="text-right">{outputTokens.toLocaleString()}</span>
 
-            <span className="text-foreground">Total:</span>
-            <span className="text-right text-foreground">
-              {totalTokens.toLocaleString()}
-            </span>
+            <span>Total:</span>
+            <span className="text-right">{totalTokens.toLocaleString()}</span>
 
-            <span className="text-foreground">Límite:</span>
-            <span className="text-right text-foreground">
-              {maxTokens.toLocaleString()}
-            </span>
+            <span>Límite:</span>
+            <span className="text-right">{maxTokens.toLocaleString()}</span>
           </div>
         </TooltipContent>
       </Tooltip>

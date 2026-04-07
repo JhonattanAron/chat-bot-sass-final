@@ -54,7 +54,7 @@ window.addEventListener("DOMContentLoaded", () => {
     lat: "-1.831239",
     lng: "-78.183406",
     optionalParameter: "Parametro opcional",
-    phoneNumber: "+593999999999",
+    phoneNumber: "+593969849653",
     documentId: "1234567890",
     identificationType: 1}).render("pp-button");
 });

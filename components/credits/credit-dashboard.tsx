@@ -1,14 +1,35 @@
 "use client";
 
-import { useCreditStore } from "@/store/credit-store";
-import { Button } from "@/components/ui/button";
+import { useEffect } from "react";
+import { useResourcesStore } from "@/store/resourses-store";
 import { Card } from "@/components/ui/card";
 
 export function CreditDashboard() {
-  const { credits, addCredits, removeCredits, setCredits } = useCreditStore();
+  const credits = useResourcesStore((state) => state.resources.credits);
 
-  const status = credits > 500 ? "Óptimo" : credits > 100 ? "Bajo" : "Crítico";
-  const percentage = Math.round((credits / 1000) * 100);
+  const fetchResources = useResourcesStore((state) => state.fetchResources);
+
+  const loading = useResourcesStore((state) => state.loading);
+
+  useEffect(() => {
+    if (!credits) {
+      fetchResources();
+    }
+  }, []);
+
+  if (loading || !credits) return null;
+
+  const total = credits.total ?? 0;
+  const available = credits.available ?? 0;
+
+  const percentage = total > 0 ? Math.round((available / total) * 100) : 0;
+
+  const status =
+    available > total * 0.5
+      ? "Óptimo"
+      : available > total * 0.1
+        ? "Bajo"
+        : "Crítico";
 
   return (
     <div className="space-y-8">
@@ -18,9 +39,11 @@ export function CreditDashboard() {
             Saldo
           </p>
           <p className="text-4xl font-semibold text-foreground mb-1">
-            {credits}
+            {available.toLocaleString()}
           </p>
-          <p className="text-xs text-muted-foreground">{percentage}% de 1000</p>
+          <p className="text-xs text-muted-foreground">
+            {percentage}% de {total.toLocaleString()}
+          </p>
         </Card>
 
         <Card className="border border-border bg-card p-8">
@@ -30,9 +53,9 @@ export function CreditDashboard() {
           <div className="flex items-center gap-3">
             <div
               className={`h-3 w-3 rounded-full ${
-                credits > 500
+                percentage > 50
                   ? "bg-accent"
-                  : credits > 100
+                  : percentage > 10
                     ? "bg-yellow-500"
                     : "bg-destructive"
               }`}

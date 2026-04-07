@@ -24,9 +24,23 @@ export default function ShopPage() {
     fetchAddons();
   }, [fetchPlans, fetchAddons]);
 
-  console.log(plans);
-  console.log(addons);
   const [activeTab, setActiveTab] = useState<"plans" | "addons">("plans");
+  const [addonTypeTab, setAddonTypeTab] = useState<
+    "vps" | "creditos" | "tokens"
+  >("creditos");
+
+  // Agrupar addons por tipo
+  const groupedAddons = {
+    vps: addons.filter((addon) => addon.type === "vps"),
+    creditos: addons.filter((addon) => addon.type === "credits"),
+    tokens: addons.filter((addon) => addon.type === "tokens"),
+  };
+
+  const addonTypes = [
+    { id: "creditos", label: "💳 Créditos", icon: "💳" },
+    { id: "tokens", label: "🔑 Tokens", icon: "🔑" },
+    { id: "vps", label: "🖥️ VPS", icon: "🖥️" },
+  ];
 
   return (
     <DashboardLayout>
@@ -138,10 +152,38 @@ export default function ShopPage() {
                 </p>
               </div>
 
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {[...addons].reverse().map((addon) => (
-                  <AddonCard key={addon.id} addon={addon} />
+              {/* Sub-tabs para tipos de addons */}
+              <div className="mb-8 flex flex-wrap gap-2">
+                {addonTypes.map((type) => (
+                  <button
+                    key={type.id}
+                    onClick={() => setAddonTypeTab(type.id as any)}
+                    className={`px-4 py-2.5 rounded-lg font-semibold text-sm transition-all duration-300 ${
+                      addonTypeTab === type.id
+                        ? "bg-gradient-to-r from-primary to-accent text-white shadow-md"
+                        : "bg-secondary text-muted-foreground hover:text-foreground border border-border hover:border-primary/50"
+                    }`}
+                  >
+                    {type.label}
+                  </button>
                 ))}
+              </div>
+
+              {/* Productos del tipo seleccionado */}
+              <div>
+                {groupedAddons[addonTypeTab].length > 0 ? (
+                  <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {[...groupedAddons[addonTypeTab]].reverse().map((addon) => (
+                      <AddonCard key={addon.id} addon={addon} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <p className="text-muted-foreground text-lg">
+                      No hay addons disponibles en esta categoría
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           )}

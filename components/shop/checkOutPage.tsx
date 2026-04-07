@@ -88,6 +88,39 @@ export default function CheckoutPage() {
   const [orderData, setOrderData] = useState<any>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
+  const createInvoice = async () => {
+    const totalPrice = cart?.total || 0;
+
+    const response = await fetch("/api/backend/invoices/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        clientName: session?.user?.email,
+        clientEmail: session?.user?.email,
+        clientAddress: "Quito Pifo Ecuador",
+        items: cart?.items,
+        transactionId: "",
+        clientTransactionId: "",
+        subtotal: totalPrice,
+        tax: 15,
+        total: totalPrice,
+        notes: ``,
+      }),
+    });
+
+    if (!response.ok) throw new Error("Error al crear la factura");
+
+    const invoice = await response.json();
+
+    // Guardamos en localStorage
+    localStorage.setItem("invoiceNumber", invoice.invoiceNumber);
+
+    setOrderData(invoice);
+
+    return invoice;
+  };
+
   // Cargar carrito al montar
   useEffect(() => {
     syncCart();
@@ -109,55 +142,42 @@ export default function CheckoutPage() {
   };
 
   const handlePaymentConfirm = async (paymentData: any) => {
+    console.log(paymentData.reference);
+
+    if (!paymentData?.reference) return;
+    console.log("handle paymem te ejecutado");
+
     setIsProcessing(true);
     setPaymentError(null);
 
     try {
-      // Obtener total del carrito
       const totalPrice = cart?.total || 0;
 
-      // Enviar datos del pedido al backend
-      const response = await fetch("/api/backend/invoices", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      // Actualizamos la factura existente en vez de crear otra
+      const response = await fetch(
+        `/api/backend/invoices/${paymentData.reference}/number`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            transactionId: paymentData.transactionId,
+            clientTransactionId: paymentData.clientTransactionId,
+            notes: `Pago confirmado ID: ${paymentData.transactionId}`,
+            total: totalPrice,
+          }),
         },
-        credentials: "include",
-        body: JSON.stringify({
-          clientName: session?.user?.email,
-          clientEmail: session?.user?.email,
-          clientAddress: "Quito Pifo Ecuador",
+      );
 
-          items:
-            cart?.items?.map((item: any) => ({
-              description: item.name || item.description,
-              quantity: item.quantity || 1,
-              unitPrice: item.price,
-            })) || [],
-          transactionId: paymentData.transactionId,
-          clientTransactionId: paymentData.clientTransactionId,
-
-          subtotal: totalPrice,
-          tax: 15,
-          total: totalPrice,
-          status: "Pendiente",
-          notes: `Pago confirmado ID: ${paymentData.transactionId}`,
-        }),
-      });
-
-      if (!response.ok) throw new Error("Error al procesar el pedido");
+      if (!response.ok) throw new Error("Error al actualizar la factura");
 
       const result = await response.json();
       setOrderData(result.order);
       setOrderComplete(true);
+
       setTimeout(() => {
-        const orderId = paymentData.transactionId;
-        if (orderId) {
-          router.push(`/dashboard/facturacion/order/${result.invoiceNumber}`);
-        } else {
-          window.location.reload();
-        }
-      }, 3000);
+        router.push(`/dashboard/facturacion/order/${paymentData.reference}`);
+      }, 2000);
     } catch (error) {
       setPaymentError("Error al procesar el pago. Intenta de nuevo.");
     } finally {
@@ -168,10 +188,10 @@ export default function CheckoutPage() {
   // Escuchar mensajes del popup de pago
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      console.log("[v0] Evento de pago:", event.data.type);
+      console.log("Evento de pago:", event.data.type);
 
       if (event.data.type === "payment_success") {
-        console.log("[v0] Pago confirmado, procesando...", event.data.data);
+        console.log("Pago confirmado, procesando...", event.data.data);
         handlePaymentConfirm(event.data.data);
       } else if (event.data.type === "payment_error") {
         setPaymentError("Error en el pago: " + event.data.error);
@@ -249,8 +269,8 @@ export default function CheckoutPage() {
             <h3 className="text-xl font-bold mb-6">Detalles del Pedido</h3>
 
             <div className="space-y-3 mb-6 pb-6 border-b border-border">
-              {cart?.items?.map((item: any) => (
-                <div key={item.id} className="flex items-start justify-between">
+              {cart?.items?.map((item: any, idx) => (
+                <div key={idx} className="flex items-start justify-between">
                   <div>
                     <p className="font-semibold">
                       {item.name || item.description}
@@ -632,6 +652,7 @@ export default function CheckoutPage() {
                   amount={totalPrice}
                   reference={"ORD_" + Date.now()}
                   email={session?.user?.email}
+                  onBeforePay={createInvoice}
                 />
               </div>
             </div>

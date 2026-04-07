@@ -28,6 +28,8 @@ import { TokenCounterGlobal } from "@/components/token-counter-global";
 import { useDashboardStore } from "@/store/dashboard-store";
 import { useSession } from "next-auth/react";
 import { CreditDashboard } from "@/components/credits/credit-dashboard";
+import { AvaliableTokens } from "@/components/tokens/avalible-tokens";
+import { UserLogs } from "@/components/pages/dashboard/logView";
 
 export default function DashboardPage() {
   const { data: session } = useSession();
@@ -100,11 +102,13 @@ export default function DashboardPage() {
                 <Loader2 className="h-6 w-6 animate-spin" />
               </div>
             ) : tokenUsage ? (
-              <TokenCounterGlobal
-                inputTokens={tokenUsage.input_tokens}
-                outputTokens={tokenUsage.output_tokens}
-                maxTokens={tokenUsage.max_tokens}
-              />
+              <>
+                <TokenCounterGlobal
+                  inputTokens={tokenUsage.input_tokens}
+                  outputTokens={tokenUsage.output_tokens}
+                />
+                <AvaliableTokens />
+              </>
             ) : (
               <div className="text-center text-muted-foreground">
                 No token usage data available
@@ -225,20 +229,7 @@ export default function DashboardPage() {
             </div>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
               <Card className="col-span-4 futuristic-card">
-                <CardHeader>
-                  <CardTitle>Recent Activity</CardTitle>
-                  <CardDescription>
-                    Your chatbots&apos; activity over the last 30 days.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="h-[300px] flex items-center justify-center">
-                  <div className="text-center">
-                    <BarChart3 className="mx-auto h-12 w-12 text-muted-foreground" />
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      Activity chart will appear here
-                    </p>
-                  </div>
-                </CardContent>
+                <UserLogs />
               </Card>
               <Card className="col-span-3 futuristic-card">
                 <CardHeader>

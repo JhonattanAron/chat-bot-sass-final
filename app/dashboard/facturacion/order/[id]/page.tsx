@@ -316,7 +316,7 @@ export default function InvoicePage({ params }: PageProps) {
                       </td>
 
                       <td className="text-right py-4 px-4">
-                        ${product.unitPrice.toFixed(2)}
+                        ${product.unitPrice}
                       </td>
 
                       <td className="text-right py-4 px-4 font-semibold">

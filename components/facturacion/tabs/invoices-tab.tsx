@@ -232,7 +232,7 @@ export default function InvoicesTab() {
                             <Button
                               onClick={() =>
                                 router.push(
-                                  `/confirm-paid?id=${invoice.transactionId}&clientTransactionId=${invoice.clientTransactionId}`,
+                                  `/confirm-paid-client?id=${invoice.transactionId}&clientTransactionId=${invoice.clientTransactionId}`,
                                 )
                               }
                               size="lg"

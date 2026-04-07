@@ -26,8 +26,9 @@ export type Addon = {
   name: string;
   description: string;
   price: number;
-  type: "credits" | "tokens";
+  type: any;
   quantity: number;
+  metadata: any;
 };
 
 type CatalogStore = {
@@ -113,6 +114,7 @@ export const useCatalogStore = create<CatalogStore>((set, get) => ({
           );
 
           const priceResponse = await priceRes.json();
+
           const price = priceResponse.prices?.[0]?.price ?? 0;
 
           return {
@@ -120,6 +122,8 @@ export const useCatalogStore = create<CatalogStore>((set, get) => ({
             name: item.name,
             description: item.description,
             price,
+            binding_type: priceResponse.prices[0].billingType,
+            interval: priceResponse.prices[0].interval,
             type: item.metadata.type,
             quantity: item.metadata.quantity,
           };

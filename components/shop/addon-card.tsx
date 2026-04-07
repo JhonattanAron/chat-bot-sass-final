@@ -8,6 +8,7 @@ import { Plus, Minus } from "lucide-react";
 export function AddonCard({ addon }: { addon: any }) {
   const addAddon = useCartStore((state) => state.addAddon);
   const [quantity, setQuantity] = useState(1);
+  console.log(addon);
 
   const handleAdd = () => {
     console.log(addon);
@@ -49,7 +50,9 @@ export function AddonCard({ addon }: { addon: any }) {
             <span className="text-3xl font-bold text-primary">
               ${addon.price}
             </span>
-            <span className="text-muted-foreground text-sm">/addon</span>
+            <span className="text-muted-foreground text-sm">
+              /{addon.interval}
+            </span>
           </div>
         </div>
 

@@ -31,7 +31,6 @@ export default function ConfirmPaymentClient() {
   const [transactionData, setTransactionData] =
     useState<ConfirmPaymentResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isClosing, setIsClosing] = useState(false);
 
   useEffect(() => {
     const id = searchParams.get("id");
@@ -86,7 +85,6 @@ export default function ConfirmPaymentClient() {
             { type: "payment_success", data: result.data },
             "*",
           );
-          setIsClosing(true);
           setTimeout(() => window.close(), 2000); // pequeño delay para asegurar render
         }
       } catch (err) {
@@ -99,24 +97,6 @@ export default function ConfirmPaymentClient() {
 
     processTransaction();
   }, [searchParams]);
-
-  if (isClosing) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Loader2 className="w-12 h-12 animate-spin text-green-600 mb-4" />
-            <p className="text-lg font-medium text-gray-800">
-              Cerrando esta ventana...
-            </p>
-            <p className="text-sm text-gray-500 mt-2">
-              Tu pago se procesó exitosamente
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   if (loading) {
     return (
